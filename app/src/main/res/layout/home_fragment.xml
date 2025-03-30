@@ -23,7 +23,7 @@
             android:layout_gravity="top|end"
             android:layout_margin="16dp"
             android:background="@drawable/rounded_button"
-            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:src="@drawable/baseline_list_alt_24"
             app:tint="#4682B4" />
 
 
@@ -44,37 +44,54 @@
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_marginTop="32dp"
+            android:background="@drawable/visualizer_placeholder"
             android:scaleType="centerCrop"
-            android:src="@drawable/baru"
-            android:background="@drawable/visualizer_placeholder" />
+            android:src="@drawable/baru" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:paddingStart="8dp">
+
+            <ImageButton
+                android:id="@+id/btn_playback_mode"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/rounded_button"
+                android:contentDescription="Playback Mode"
+                android:src="@drawable/ic_repeat"
+                app:tint="#1E90FF" />
+        </LinearLayout>
 
         <!-- SeekBar để tua và hiển thị thời gian -->
         <SeekBar
             android:id="@+id/seek_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
             android:progressTint="#1E90FF"
             android:thumbTint="#1E90FF" />
+
 
         <!-- Hiển thị thời gian phát -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal"
-            android:paddingHorizontal="8dp"
-            android:layout_marginTop="4dp">
+            android:paddingHorizontal="8dp">
 
             <TextView
                 android:id="@+id/tv_current_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
-                android:textSize="12sp"
-                android:textColor="#444" />
+                android:textColor="#444"
+                android:textSize="12sp" />
 
             <View
                 android:layout_width="0dp"
@@ -86,10 +103,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
-                android:textSize="12sp"
-                android:textColor="#444" />
+                android:textColor="#444"
+                android:textSize="12sp" />
         </LinearLayout>
-
 
 
         <!-- Control buttons -->
@@ -147,7 +163,21 @@
                 app:tint="#1E90FF" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/text_feedback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_gravity="center_horizontal"
+            android:padding="8dp"
+            android:background="@drawable/bg_feedback"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:visibility="invisible"
+            android:animationCache="false" />
+
     </LinearLayout>
+
 
     <!-- Navigation Drawer for song list -->
     <ListView
