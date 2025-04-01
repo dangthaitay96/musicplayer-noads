@@ -42,6 +42,8 @@ dependencies {
     // ViewPager2 + TabLayout
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation("com.google.android.material:material:1.10.0")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+
 
     // Test
     testImplementation(libs.junit)

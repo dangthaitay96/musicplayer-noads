@@ -167,14 +167,14 @@
             android:id="@+id/text_feedback"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:layout_gravity="center_horizontal"
-            android:padding="8dp"
+            android:layout_marginTop="12dp"
+            android:animationCache="false"
             android:background="@drawable/bg_feedback"
+            android:padding="8dp"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
-            android:visibility="invisible"
-            android:animationCache="false" />
+            android:visibility="invisible" />
 
     </LinearLayout>
 

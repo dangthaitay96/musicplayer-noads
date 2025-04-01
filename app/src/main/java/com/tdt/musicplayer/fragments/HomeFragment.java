@@ -59,49 +59,57 @@ public class HomeFragment extends Fragment {
   }
 
   private void setupUI(View view) {
+    // 📦 Layout chính
     drawerLayout = view.findViewById(R.id.drawer_layout);
-    btnPlayPause = view.findViewById(R.id.btn_play_pause);
     songListView = view.findViewById(R.id.song_list_view);
-    songTitle = view.findViewById(R.id.song_title);
+
+    // 🎵 Player controls
+    btnPlayPause = view.findViewById(R.id.btn_play_pause);
     seekBar = view.findViewById(R.id.seek_bar);
     tvCurrentTime = view.findViewById(R.id.tv_current_time);
     tvTotalTime = view.findViewById(R.id.tv_total_time);
-    // Gắn header có 2 nút chức năng
-    View headerView = LayoutInflater.from(getContext()).inflate(R.layout.item_music_header, songListView, false);
+    songTitle = view.findViewById(R.id.song_title);
+
+    // 📋 Header với nút chức năng danh sách
+    View headerView = LayoutInflater.from(getContext())
+            .inflate(R.layout.item_music_header, songListView, false);
     songListView.addHeaderView(headerView);
 
+    // các nút trong danh sách nhạc
     Button btnScanAll = headerView.findViewById(R.id.btn_scan_all);
     Button btnClearList = headerView.findViewById(R.id.btn_clear_list);
 
+    // các sự kiện load nhạc
     btnScanAll.setOnClickListener(v -> checkPermissionAndLoadSongs());
-
     btnClearList.setOnClickListener(v -> {
       songList.clear();
-      songListView.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, new ArrayList<>()));
+      songListView.setAdapter(new ArrayAdapter<>(
+              requireContext(), android.R.layout.simple_list_item_1, new ArrayList<>()));
       Toast.makeText(getContext(), "Đã xoá danh sách nhạc", Toast.LENGTH_SHORT).show();
     });
 
-    musicPlayerManager =
-        new MusicPlayerManager(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
+    // 🎧 Khởi tạo trình phát
+    musicPlayerManager = new MusicPlayerManager(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
 
+    // 🕹️ Menu và điều hướng bài hát
     ImageButton btnMenu = view.findViewById(R.id.btn_menu);
     btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-    view.findViewById(R.id.btn_next)
-        .setOnClickListener(
-            v -> {
-              musicPlayerManager.playNext();
-              updateTitle();
-            });
+    view.findViewById(R.id.btn_next).setOnClickListener(v -> {
+      musicPlayerManager.playNext();
+      updateTitle();
+    });
 
-    view.findViewById(R.id.btn_prev)
-        .setOnClickListener(
-            v -> {
-              musicPlayerManager.playPrev();
-              updateTitle();
-            });
+    view.findViewById(R.id.btn_prev).setOnClickListener(v -> {
+      musicPlayerManager.playPrev();
+      updateTitle();
+    });
   }
 
+  /***
+   * nút tạm dùng và tiếp tục xen lẫn các logic khác liên quan tới đồng nhất như thời gian chạy
+   * @param view
+   */
   private void setupButtonListeners(View view) {
     btnPlayPause.setOnClickListener(
         v -> {
@@ -118,6 +126,10 @@ public class HomeFragment extends Fragment {
     view.findViewById(R.id.btn_back_5s).setOnClickListener(v -> musicPlayerManager.seekBy(-5000));
   }
 
+  /***
+   * nút điều khiển danh sách
+   * @param view
+   */
   private void setupPlaybackModeButton(View view) {
     ImageButton btnPlaybackMode = view.findViewById(R.id.btn_playback_mode);
     TextView textFeedback = view.findViewById(R.id.text_feedback);
@@ -159,6 +171,10 @@ public class HomeFragment extends Fragment {
         });
   }
 
+  /***
+   * điều khiển icon lúc người dùng click icon
+   * @param button
+   */
   private void updatePlaybackModeIcon(ImageButton button) {
     int iconRes;
     switch (musicPlayerManager.getPlaybackMode()) {
@@ -178,6 +194,9 @@ public class HomeFragment extends Fragment {
     button.setImageResource(iconRes);
   }
 
+  /***
+   * check quyền cấp phát truy cập bộ nhớ
+   */
   private void checkPermissionAndLoadSongs() {
     if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_AUDIO)
         != PackageManager.PERMISSION_GRANTED) {
@@ -188,6 +207,9 @@ public class HomeFragment extends Fragment {
     }
   }
 
+  /***
+   * load danh sach nhạc
+   */
   @SuppressLint("SetTextI18n")
   private void loadSongs() {
     songList = songRepository.loadLocalSongs(requireContext());
@@ -217,6 +239,11 @@ public class HomeFragment extends Fragment {
     }
   }
 
+  /***
+   * hiển thị thông báo khi click điều khiển danh sách
+   * @param textView
+   * @param message
+   */
   private void showQuickFeedback(TextView textView, String message) {
     textView.setText(message);
     textView.setVisibility(View.VISIBLE);
