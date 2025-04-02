@@ -163,7 +163,14 @@ public class HomeFragment extends Fragment {
   private void loadSongs() {
     songList = songRepository.loadLocalSongs(requireContext());
     songListAdapter.clear();
-    songListAdapter.addAll(songList.stream().map(Song::getTitle).collect(Collectors.toList()));
+
+    if (songList.isEmpty()) {
+      Toast.makeText(getContext(), "\u26a0\ufe0f Kh\u00f4ng t\u00ecm th\u1ea5y b\u00e0i h\u00e1t n\u00e0o trong thi\u1ebft b\u1ecb!", Toast.LENGTH_SHORT).show();
+    } else {
+      songListAdapter.addAll(songList.stream().map(Song::getTitle).collect(Collectors.toList()));
+      Toast.makeText(getContext(), "\u2705 Qu\u00e9t xong: " + songList.size() + " b\u00e0i h\u00e1t", Toast.LENGTH_SHORT).show();
+    }
+
     songListAdapter.notifyDataSetChanged();
 
     songListView.setOnItemClickListener((parent, view, position, id) -> {
@@ -185,3 +192,4 @@ public class HomeFragment extends Fragment {
     }
   }
 }
+

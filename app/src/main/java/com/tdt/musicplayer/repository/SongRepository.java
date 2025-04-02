@@ -17,40 +17,34 @@ public class SongRepository {
   public List<Song> loadLocalSongs(Context context) {
     List<Song> songList = new ArrayList<>();
 
-    // URI của MediaStore chứa dữ liệu file âm thanh
     Uri collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
     String[] projection = {
-            MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.ARTIST,
-            MediaStore.Audio.Media.DATA,
-            MediaStore.Audio.Media.DURATION
+      MediaStore.Audio.Media.TITLE,
+      MediaStore.Audio.Media.ARTIST,
+      MediaStore.Audio.Media.DATA,
+      MediaStore.Audio.Media.DURATION
     };
 
-    // Lấy đường dẫn thư mục Music một cách động
     File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+    String targetPath = musicDir.getAbsolutePath();
+    if (!targetPath.endsWith("/")) targetPath += "/";
 
+    Log.d(TAG, "Scanning Music folder at: " + targetPath);
 
-    String targetFolder = musicDir.getAbsolutePath();
-    if (!targetFolder.endsWith("/")) {
-      targetFolder = targetFolder + "/";
-    }
+    String selection =
+        MediaStore.Audio.Media.IS_MUSIC + " != 0 AND " + MediaStore.Audio.Media.DATA + " LIKE ?";
+    String[] selectionArgs = new String[] {targetPath + "%"};
 
-    Log.d(TAG, "Target folder: " + targetFolder);
+    try (Cursor cursor =
+        context
+            .getContentResolver()
+            .query(
+                collection,
+                projection,
+                selection,
+                selectionArgs,
+                MediaStore.Audio.Media.TITLE + " ASC")) {
 
-    // Điều kiện: chỉ lấy các file là nhạc (IS_MUSIC != 0) và có đường dẫn bắt đầu bằng targetFolder
-//    String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0 AND "
-//            + MediaStore.Audio.Media.DATA + " LIKE ?";
-//    String[] selectionArgs = new String[] { targetFolder + "%" };
-    String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
-    String[] selectionArgs = null;
-
-
-    try (Cursor cursor = context.getContentResolver().query(
-            collection,
-            projection,
-            selection,
-            selectionArgs,
-            MediaStore.Audio.Media.TITLE + " ASC")) {
       if (cursor != null) {
         Log.d(TAG, "Total songs found: " + cursor.getCount());
         while (cursor.moveToNext()) {
