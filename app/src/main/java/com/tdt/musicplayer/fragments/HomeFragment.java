@@ -1,19 +1,13 @@
 package com.tdt.musicplayer.fragments;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -22,14 +16,13 @@ import com.tdt.musicplayer.models.PlaybackMode;
 import com.tdt.musicplayer.models.Song;
 import com.tdt.musicplayer.player.MusicPlayerManager;
 import com.tdt.musicplayer.repository.SongRepository;
+import com.tdt.musicplayer.utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class HomeFragment extends Fragment {
-  private static final int PERMISSION_REQUEST_CODE = 123;
-
   private DrawerLayout drawerLayout;
   private ListView songListView;
   private TextView songTitle, tvCurrentTime, tvTotalTime;
@@ -38,143 +31,115 @@ public class HomeFragment extends Fragment {
   private MusicPlayerManager musicPlayerManager;
   private List<Song> songList = new ArrayList<>();
   private SongRepository songRepository;
-
-
+  private ArrayAdapter<String> songListAdapter;
 
   @Nullable
   @Override
-  public View onCreateView(
-      @NonNull LayoutInflater inflater,
-      @Nullable ViewGroup container,
-      @Nullable Bundle savedInstanceState) {
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.home_fragment, container, false);
     songRepository = new SongRepository();
 
     setupUI(view);
     setupButtonListeners(view);
     setupPlaybackModeButton(view);
-    checkPermissionAndLoadSongs();
 
     return view;
   }
 
   private void setupUI(View view) {
-    // 📦 Layout chính
     drawerLayout = view.findViewById(R.id.drawer_layout);
     songListView = view.findViewById(R.id.song_list_view);
-
-    // 🎵 Player controls
     btnPlayPause = view.findViewById(R.id.btn_play_pause);
     seekBar = view.findViewById(R.id.seek_bar);
     tvCurrentTime = view.findViewById(R.id.tv_current_time);
     tvTotalTime = view.findViewById(R.id.tv_total_time);
     songTitle = view.findViewById(R.id.song_title);
 
-    // 📋 Header với nút chức năng danh sách
-    View headerView = LayoutInflater.from(getContext())
-            .inflate(R.layout.item_music_header, songListView, false);
+    // Header view with buttons
+    View headerView = LayoutInflater.from(getContext()).inflate(R.layout.item_music_header, songListView, false);
     songListView.addHeaderView(headerView);
 
-    // các nút trong danh sách nhạc
     Button btnScanAll = headerView.findViewById(R.id.btn_scan_all);
     Button btnClearList = headerView.findViewById(R.id.btn_clear_list);
 
-    // các sự kiện load nhạc
-    btnScanAll.setOnClickListener(v -> checkPermissionAndLoadSongs());
+    btnScanAll.setOnClickListener(v -> loadSongs());
     btnClearList.setOnClickListener(v -> {
       songList.clear();
-      songListView.setAdapter(new ArrayAdapter<>(
-              requireContext(), android.R.layout.simple_list_item_1, new ArrayList<>()));
-      Toast.makeText(getContext(), "Đã xoá danh sách nhạc", Toast.LENGTH_SHORT).show();
+      songListAdapter.clear();
+      Toast.makeText(getContext(), "\u0110\u00e3 xo\u00e1 danh s\u00e1ch nh\u1ea1c", Toast.LENGTH_SHORT).show();
     });
 
-    // 🎧 Khởi tạo trình phát
+    songListAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, new ArrayList<>());
+    songListView.setAdapter(songListAdapter);
+
     musicPlayerManager = new MusicPlayerManager(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
 
-    // 🕹️ Menu và điều hướng bài hát
-    ImageButton btnMenu = view.findViewById(R.id.btn_menu);
-    btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
-
+    view.findViewById(R.id.btn_menu).setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
     view.findViewById(R.id.btn_next).setOnClickListener(v -> {
       musicPlayerManager.playNext();
       updateTitle();
     });
-
     view.findViewById(R.id.btn_prev).setOnClickListener(v -> {
       musicPlayerManager.playPrev();
       updateTitle();
     });
   }
 
-  /***
-   * nút tạm dùng và tiếp tục xen lẫn các logic khác liên quan tới đồng nhất như thời gian chạy
-   * @param view
-   */
   private void setupButtonListeners(View view) {
-    btnPlayPause.setOnClickListener(
-        v -> {
-          if (musicPlayerManager.isPlaying()) {
-            musicPlayerManager.pause();
-            btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
-          } else {
-            musicPlayerManager.resume();
-            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
-          }
-        });
+    btnPlayPause.setOnClickListener(v -> {
+      if (musicPlayerManager.isPlaying()) {
+        musicPlayerManager.pause();
+        btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
+      } else {
+        musicPlayerManager.resume();
+        btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+      }
+    });
 
     view.findViewById(R.id.btn_forward_5s).setOnClickListener(v -> musicPlayerManager.seekBy(5000));
     view.findViewById(R.id.btn_back_5s).setOnClickListener(v -> musicPlayerManager.seekBy(-5000));
   }
 
-  /***
-   * nút điều khiển danh sách
-   * @param view
-   */
   private void setupPlaybackModeButton(View view) {
     ImageButton btnPlaybackMode = view.findViewById(R.id.btn_playback_mode);
     TextView textFeedback = view.findViewById(R.id.text_feedback);
 
     updatePlaybackModeIcon(btnPlaybackMode);
 
-    btnPlaybackMode.setOnClickListener(
-        v -> {
-          PlaybackMode newMode;
-          String message;
-          int iconRes;
+    btnPlaybackMode.setOnClickListener(v -> {
+      PlaybackMode newMode;
+      String message;
+      int iconRes;
 
-          switch (musicPlayerManager.getPlaybackMode()) {
-            case NORMAL:
-              newMode = PlaybackMode.REPEAT_ALL;
-              iconRes = R.drawable.ic_repeat_all;
-              message = "🔁 Lặp danh sách";
-              break;
-            case REPEAT_ALL:
-              newMode = PlaybackMode.REPEAT_ONE;
-              iconRes = R.drawable.ic_repeat_one;
-              message = "🔂 Lặp 1 bài";
-              break;
-            case REPEAT_ONE:
-              newMode = PlaybackMode.SHUFFLE;
-              iconRes = R.drawable.ic_shuffle;
-              message = "🔀 Phát ngẫu nhiên";
-              break;
-            default:
-              newMode = PlaybackMode.NORMAL;
-              iconRes = R.drawable.ic_play_order;
-              message = "▶️ Phát tuần tự";
-              break;
-          }
+      switch (musicPlayerManager.getPlaybackMode()) {
+        case NORMAL:
+          newMode = PlaybackMode.REPEAT_ALL;
+          iconRes = R.drawable.ic_repeat_all;
+          message = "\ud83d\udd01 L\u1eb7p danh s\u00e1ch";
+          break;
+        case REPEAT_ALL:
+          newMode = PlaybackMode.REPEAT_ONE;
+          iconRes = R.drawable.ic_repeat_one;
+          message = "\ud83d\udd02 L\u1eb7p 1 b\u00e0i";
+          break;
+        case REPEAT_ONE:
+          newMode = PlaybackMode.SHUFFLE;
+          iconRes = R.drawable.ic_shuffle;
+          message = "\ud83d\udd00 Ph\u00e1t ng\u1eabu nhi\u00ean";
+          break;
+        default:
+          newMode = PlaybackMode.NORMAL;
+          iconRes = R.drawable.ic_play_order;
+          message = "\u25b6\ufe0f Ph\u00e1t tu\u1ea7n t\u1ef1";
+          break;
+      }
 
-          musicPlayerManager.setPlaybackMode(newMode);
-          btnPlaybackMode.setImageResource(iconRes);
-          showQuickFeedback(textFeedback, message);
-        });
+      musicPlayerManager.setPlaybackMode(newMode);
+      btnPlaybackMode.setImageResource(iconRes);
+      ViewUtils.showQuickFeedback(textFeedback, message);
+    });
   }
 
-  /***
-   * điều khiển icon lúc người dùng click icon
-   * @param button
-   */
   private void updatePlaybackModeIcon(ImageButton button) {
     int iconRes;
     switch (musicPlayerManager.getPlaybackMode()) {
@@ -194,32 +159,12 @@ public class HomeFragment extends Fragment {
     button.setImageResource(iconRes);
   }
 
-  /***
-   * check quyền cấp phát truy cập bộ nhớ
-   */
-  private void checkPermissionAndLoadSongs() {
-    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_AUDIO)
-        != PackageManager.PERMISSION_GRANTED) {
-      requestPermissions(
-          new String[] {Manifest.permission.READ_MEDIA_AUDIO}, PERMISSION_REQUEST_CODE);
-    } else {
-      loadSongs();
-    }
-  }
-
-  /***
-   * load danh sach nhạc
-   */
   @SuppressLint("SetTextI18n")
   private void loadSongs() {
     songList = songRepository.loadLocalSongs(requireContext());
-
-    ArrayAdapter<String> adapter =
-            new ArrayAdapter<>(
-                    getContext(),
-                    android.R.layout.simple_list_item_1,
-                    songList.stream().map(Song::getTitle).collect(Collectors.toList()));
-    songListView.setAdapter(adapter);
+    songListAdapter.clear();
+    songListAdapter.addAll(songList.stream().map(Song::getTitle).collect(Collectors.toList()));
+    songListAdapter.notifyDataSetChanged();
 
     songListView.setOnItemClickListener((parent, view, position, id) -> {
       int realPosition = position - songListView.getHeaderViewsCount();
@@ -232,29 +177,11 @@ public class HomeFragment extends Fragment {
     });
   }
 
+  @SuppressLint("SetTextI18n")
   private void updateTitle() {
     Song song = musicPlayerManager.getCurrentSong();
     if (song != null) {
-      songTitle.setText("Đang phát: " + song.getTitle());
+      songTitle.setText("\u0110ang ph\u00e1t: " + song.getTitle());
     }
-  }
-
-  /***
-   * hiển thị thông báo khi click điều khiển danh sách
-   * @param textView
-   * @param message
-   */
-  private void showQuickFeedback(TextView textView, String message) {
-    textView.setText(message);
-    textView.setVisibility(View.VISIBLE);
-    textView.setAlpha(1f);
-    textView.animate().cancel();
-    textView
-        .animate()
-        .alpha(0f)
-        .setDuration(1000)
-        .setStartDelay(1500)
-        .withEndAction(() -> textView.setVisibility(View.INVISIBLE))
-        .start();
   }
 }
