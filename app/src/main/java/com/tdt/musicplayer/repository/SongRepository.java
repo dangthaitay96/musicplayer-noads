@@ -19,6 +19,7 @@ public class SongRepository {
 
     Uri collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
     String[] projection = {
+      MediaStore.Audio.Media._ID,
       MediaStore.Audio.Media.TITLE,
       MediaStore.Audio.Media.ARTIST,
       MediaStore.Audio.Media.DATA,
@@ -48,13 +49,15 @@ public class SongRepository {
       if (cursor != null) {
         Log.d(TAG, "Total songs found: " + cursor.getCount());
         while (cursor.moveToNext()) {
-          String title = cursor.getString(0);
-          String artist = cursor.getString(1);
-          String path = cursor.getString(2);
-          int duration = cursor.getInt(3);
+          long id = cursor.getLong(0);
+          String title = cursor.getString(1);
+          String artist = cursor.getString(2);
+          String path = cursor.getString(3);
+          int duration = cursor.getInt(4);
 
           Log.d(TAG, "Song: " + title + " | Path: " + path);
-          songList.add(new Song(title, artist, path, duration));
+          Log.d(TAG, "Loaded: " + id + " | " + title);
+          songList.add(new Song(id, title, artist, path, duration));
         }
       } else {
         Log.d(TAG, "Cursor is null");

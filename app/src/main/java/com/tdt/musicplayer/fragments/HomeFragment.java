@@ -1,6 +1,7 @@
 package com.tdt.musicplayer.fragments;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,10 +18,9 @@ import com.tdt.musicplayer.models.Song;
 import com.tdt.musicplayer.player.MusicPlayerManager;
 import com.tdt.musicplayer.repository.SongRepository;
 import com.tdt.musicplayer.utils.ViewUtils;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Locale;
 
 public class HomeFragment extends Fragment {
   private DrawerLayout drawerLayout;
@@ -31,11 +31,14 @@ public class HomeFragment extends Fragment {
   private MusicPlayerManager musicPlayerManager;
   private List<Song> songList = new ArrayList<>();
   private SongRepository songRepository;
-  private ArrayAdapter<String> songListAdapter;
+  private ArrayAdapter<Song> songListAdapter;
 
   @Nullable
   @Override
-  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+  public View onCreateView(
+      @NonNull LayoutInflater inflater,
+      @Nullable ViewGroup container,
+      @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.home_fragment, container, false);
     songRepository = new SongRepository();
 
@@ -55,46 +58,97 @@ public class HomeFragment extends Fragment {
     tvTotalTime = view.findViewById(R.id.tv_total_time);
     songTitle = view.findViewById(R.id.song_title);
 
-    // Header view with buttons
-    View headerView = LayoutInflater.from(getContext()).inflate(R.layout.item_music_header, songListView, false);
+    musicPlayerManager =
+        MusicPlayerManager.getInstance(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
+
+    musicPlayerManager.syncUI();
+    updateTitle();
+    btnPlayPause.setImageResource(
+        musicPlayerManager.isPlaying()
+            ? android.R.drawable.ic_media_pause
+            : android.R.drawable.ic_media_play);
+
+    songListAdapter =
+        new ArrayAdapter<Song>(
+            requireContext(), R.layout.item_song_drawer, R.id.tvSongTitle, new ArrayList<>()) {
+          @NonNull
+          @Override
+          public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+            @SuppressLint("ViewHolder")
+            View view =
+                LayoutInflater.from(getContext()).inflate(R.layout.item_song_drawer, parent, false);
+
+            TextView tv = view.findViewById(R.id.tvSongTitle);
+            ImageView ivPlay = view.findViewById(R.id.ivPlayIcon);
+
+            Song currentSong = musicPlayerManager.getCurrentSong();
+            Song thisSong = getItem(position);
+
+            if (thisSong != null && tv != null) {
+              tv.setText(thisSong.getTitle());
+              boolean isCurrent = currentSong != null && thisSong.getId() == currentSong.getId();
+              tv.setSelected(isCurrent);
+              view.setBackgroundColor(isCurrent ? Color.parseColor("#FFF3E0") : Color.TRANSPARENT);
+            }
+
+            if (ivPlay != null) {
+              boolean isCurrent =
+                  currentSong != null
+                      && thisSong != null
+                      && thisSong.getId() == currentSong.getId();
+              ivPlay.setVisibility(isCurrent ? View.VISIBLE : View.GONE);
+            }
+
+            return view;
+          }
+        };
+
+    View headerView =
+        LayoutInflater.from(getContext()).inflate(R.layout.item_music_header, songListView, false);
     songListView.addHeaderView(headerView);
+    songListView.setAdapter(songListAdapter);
 
     Button btnScanAll = headerView.findViewById(R.id.btn_scan_all);
     Button btnClearList = headerView.findViewById(R.id.btn_clear_list);
 
     btnScanAll.setOnClickListener(v -> loadSongs());
-    btnClearList.setOnClickListener(v -> {
-      songList.clear();
-      songListAdapter.clear();
-      Toast.makeText(getContext(), "\u0110\u00e3 xo\u00e1 danh s\u00e1ch nh\u1ea1c", Toast.LENGTH_SHORT).show();
-    });
+    btnClearList.setOnClickListener(
+        v -> {
+          songList.clear();
+          songListAdapter.clear();
+          Toast.makeText(getContext(), "\uD83D\uDDD1️ Đã xoá danh sách nhạc", Toast.LENGTH_SHORT)
+              .show();
+        });
 
-    songListAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, new ArrayList<>());
-    songListView.setAdapter(songListAdapter);
-
-    musicPlayerManager = new MusicPlayerManager(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
-
-    view.findViewById(R.id.btn_menu).setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
-    view.findViewById(R.id.btn_next).setOnClickListener(v -> {
-      musicPlayerManager.playNext();
-      updateTitle();
-    });
-    view.findViewById(R.id.btn_prev).setOnClickListener(v -> {
-      musicPlayerManager.playPrev();
-      updateTitle();
-    });
+    view.findViewById(R.id.btn_menu)
+        .setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+    view.findViewById(R.id.btn_next)
+        .setOnClickListener(
+            v -> {
+              musicPlayerManager.playNext();
+              updateTitle();
+              songListAdapter.notifyDataSetChanged();
+            });
+    view.findViewById(R.id.btn_prev)
+        .setOnClickListener(
+            v -> {
+              musicPlayerManager.playPrev();
+              updateTitle();
+              songListAdapter.notifyDataSetChanged();
+            });
   }
 
   private void setupButtonListeners(View view) {
-    btnPlayPause.setOnClickListener(v -> {
-      if (musicPlayerManager.isPlaying()) {
-        musicPlayerManager.pause();
-        btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
-      } else {
-        musicPlayerManager.resume();
-        btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
-      }
-    });
+    btnPlayPause.setOnClickListener(
+        v -> {
+          if (musicPlayerManager.isPlaying()) {
+            musicPlayerManager.pause();
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
+          } else {
+            musicPlayerManager.resume();
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+          }
+        });
 
     view.findViewById(R.id.btn_forward_5s).setOnClickListener(v -> musicPlayerManager.seekBy(5000));
     view.findViewById(R.id.btn_back_5s).setOnClickListener(v -> musicPlayerManager.seekBy(-5000));
@@ -106,38 +160,39 @@ public class HomeFragment extends Fragment {
 
     updatePlaybackModeIcon(btnPlaybackMode);
 
-    btnPlaybackMode.setOnClickListener(v -> {
-      PlaybackMode newMode;
-      String message;
-      int iconRes;
+    btnPlaybackMode.setOnClickListener(
+        v -> {
+          PlaybackMode newMode;
+          String message;
+          int iconRes;
 
-      switch (musicPlayerManager.getPlaybackMode()) {
-        case NORMAL:
-          newMode = PlaybackMode.REPEAT_ALL;
-          iconRes = R.drawable.ic_repeat_all;
-          message = "\ud83d\udd01 L\u1eb7p danh s\u00e1ch";
-          break;
-        case REPEAT_ALL:
-          newMode = PlaybackMode.REPEAT_ONE;
-          iconRes = R.drawable.ic_repeat_one;
-          message = "\ud83d\udd02 L\u1eb7p 1 b\u00e0i";
-          break;
-        case REPEAT_ONE:
-          newMode = PlaybackMode.SHUFFLE;
-          iconRes = R.drawable.ic_shuffle;
-          message = "\ud83d\udd00 Ph\u00e1t ng\u1eabu nhi\u00ean";
-          break;
-        default:
-          newMode = PlaybackMode.NORMAL;
-          iconRes = R.drawable.ic_play_order;
-          message = "\u25b6\ufe0f Ph\u00e1t tu\u1ea7n t\u1ef1";
-          break;
-      }
+          switch (musicPlayerManager.getPlaybackMode()) {
+            case NORMAL:
+              newMode = PlaybackMode.REPEAT_ALL;
+              iconRes = R.drawable.ic_repeat_all;
+              message = "\uD83D\uDD01 Lặp danh sách";
+              break;
+            case REPEAT_ALL:
+              newMode = PlaybackMode.REPEAT_ONE;
+              iconRes = R.drawable.ic_repeat_one;
+              message = "\uD83D\uDD02 Lặp 1 bài";
+              break;
+            case REPEAT_ONE:
+              newMode = PlaybackMode.SHUFFLE;
+              iconRes = R.drawable.ic_shuffle;
+              message = "\uD83D\uDD00 Phát ngẫu nhiên";
+              break;
+            default:
+              newMode = PlaybackMode.NORMAL;
+              iconRes = R.drawable.ic_play_order;
+              message = "▶️ Phát tuần tự";
+              break;
+          }
 
-      musicPlayerManager.setPlaybackMode(newMode);
-      btnPlaybackMode.setImageResource(iconRes);
-      ViewUtils.showQuickFeedback(textFeedback, message);
-    });
+          musicPlayerManager.setPlaybackMode(newMode);
+          btnPlaybackMode.setImageResource(iconRes);
+          ViewUtils.showQuickFeedback(textFeedback, message);
+        });
   }
 
   private void updatePlaybackModeIcon(ImageButton button) {
@@ -161,35 +216,41 @@ public class HomeFragment extends Fragment {
 
   @SuppressLint("SetTextI18n")
   private void loadSongs() {
+
     songList = songRepository.loadLocalSongs(requireContext());
     songListAdapter.clear();
 
     if (songList.isEmpty()) {
-      Toast.makeText(getContext(), "\u26a0\ufe0f Kh\u00f4ng t\u00ecm th\u1ea5y b\u00e0i h\u00e1t n\u00e0o trong thi\u1ebft b\u1ecb!", Toast.LENGTH_SHORT).show();
+      Toast.makeText(
+              getContext(), "⚠️ Không tìm thấy bài hát nào trong thiết bị!", Toast.LENGTH_SHORT)
+          .show();
     } else {
-      songListAdapter.addAll(songList.stream().map(Song::getTitle).collect(Collectors.toList()));
-      Toast.makeText(getContext(), "\u2705 Qu\u00e9t xong: " + songList.size() + " b\u00e0i h\u00e1t", Toast.LENGTH_SHORT).show();
+      songListAdapter.addAll(songList);
+      Toast.makeText(
+              getContext(), "✅ Quét xong: " + songList.size() + " bài hát", Toast.LENGTH_SHORT)
+          .show();
     }
-
     songListAdapter.notifyDataSetChanged();
 
-    songListView.setOnItemClickListener((parent, view, position, id) -> {
-      int realPosition = position - songListView.getHeaderViewsCount();
-      if (realPosition >= 0 && realPosition < songList.size()) {
-        musicPlayerManager.play(songList, realPosition);
-        updateTitle();
-        btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
-        drawerLayout.closeDrawer(GravityCompat.START);
-      }
-    });
+    songListView.setOnItemClickListener(
+        (parent, view1, position, id) -> {
+          int realPosition = position - songListView.getHeaderViewsCount();
+          if (realPosition >= 0 && realPosition < songList.size()) {
+            musicPlayerManager.play(songList, realPosition);
+            updateTitle();
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+            songListAdapter.notifyDataSetChanged();
+            drawerLayout.closeDrawer(GravityCompat.START);
+          }
+        });
   }
 
   @SuppressLint("SetTextI18n")
   private void updateTitle() {
     Song song = musicPlayerManager.getCurrentSong();
     if (song != null) {
-      songTitle.setText("\u0110ang ph\u00e1t: " + song.getTitle());
+      songTitle.setText("Đang phát: " + song.getTitle());
+      songTitle.setSelected(true);
     }
   }
 }
-
