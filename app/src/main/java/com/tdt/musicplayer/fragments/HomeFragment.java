@@ -19,7 +19,8 @@ import com.tdt.musicplayer.models.PlaybackMode;
 import com.tdt.musicplayer.models.Song;
 import com.tdt.musicplayer.player.MusicPlayerManager;
 import com.tdt.musicplayer.repository.SongRepository;
-import com.tdt.musicplayer.utils.DiscAnimator;
+import com.tdt.musicplayer.utils.DiscImageProvider;
+import com.tdt.musicplayer.utils.DiscSwitcher;
 import com.tdt.musicplayer.utils.ViewUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class HomeFragment extends Fragment {
   private SongRepository songRepository;
   private ArrayAdapter<Song> songListAdapter;
   private HomeViewModel homeViewModel;
-  private DiscAnimator discAnimator;
+  private DiscSwitcher discSwitcher;
   private ImageView rotatingImage;
 
   @Nullable
@@ -74,7 +75,7 @@ public class HomeFragment extends Fragment {
     tvTotalTime = view.findViewById(R.id.tv_total_time);
     songTitle = view.findViewById(R.id.song_title);
     rotatingImage = view.findViewById(R.id.rotating_image);
-    discAnimator = new DiscAnimator(getContext(), rotatingImage);
+    discSwitcher = new DiscSwitcher(getContext(), rotatingImage, DiscImageProvider.getDiscImages());
 
     musicPlayerManager =
         MusicPlayerManager.getInstance(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
@@ -146,7 +147,7 @@ public class HomeFragment extends Fragment {
               musicPlayerManager.playNext();
               updateTitle();
               songListAdapter.notifyDataSetChanged();
-              discAnimator.start();
+                discSwitcher.start();
             });
     view.findViewById(R.id.btn_prev)
         .setOnClickListener(
@@ -154,7 +155,7 @@ public class HomeFragment extends Fragment {
               musicPlayerManager.playPrev();
               updateTitle();
               songListAdapter.notifyDataSetChanged();
-              discAnimator.start();
+                discSwitcher.start();
             });
 
     songListView.setOnItemClickListener(
@@ -171,7 +172,7 @@ public class HomeFragment extends Fragment {
               updateTitle();
               btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
               songListAdapter.notifyDataSetChanged();
-              discAnimator.start();
+                discSwitcher.start();
               drawerLayout.closeDrawer(GravityCompat.START);
             }
           }
@@ -183,11 +184,11 @@ public class HomeFragment extends Fragment {
         v -> {
           if (musicPlayerManager.isPlaying()) {
             musicPlayerManager.pause();
-            discAnimator.stop();
+              discSwitcher.stop();
             btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
           } else {
             musicPlayerManager.resume();
-            discAnimator.start();
+              discSwitcher.start();
             btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
           }
         });
@@ -282,7 +283,7 @@ public class HomeFragment extends Fragment {
             musicPlayerManager.play(songList, realPosition);
             updateTitle();
             btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
-            discAnimator.start();
+              discSwitcher.start();
             songListAdapter.notifyDataSetChanged();
             drawerLayout.closeDrawer(GravityCompat.START);
           }
