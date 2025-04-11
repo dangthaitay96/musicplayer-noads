@@ -39,7 +39,7 @@ public class ConvertFragment extends Fragment {
         btnConvert.setOnClickListener(v -> {
             String url = editLink.getText().toString().trim();
             if (url.isEmpty()) {
-                ViewUtils.showQuickFeedback(textFeedback, "Vui lòng nhập link YouTube");
+                ViewUtils.showQuickFeedback(textFeedback, "Vui lòng nhập đường dẫn diu túp ");
                 return;
             }
 
