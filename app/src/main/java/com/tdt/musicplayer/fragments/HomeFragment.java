@@ -298,4 +298,19 @@ public class HomeFragment extends Fragment {
       songTitle.setSelected(true);
     }
   }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        resumeDiscIfPlaying();
+    }
+
+    private void resumeDiscIfPlaying() {
+        if (musicPlayerManager.isPlaying()) {
+            discSwitcher.start();
+        } else {
+            discSwitcher.stop();
+        }
+    }
+
 }

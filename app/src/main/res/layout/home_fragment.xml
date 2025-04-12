@@ -53,7 +53,7 @@
             android:layout_marginTop="32dp"
             android:background="@drawable/visualizer_placeholder"
             android:scaleType="centerCrop"
-            android:src="@drawable/baru" />
+            />
 
         <LinearLayout
             android:layout_width="match_parent"
