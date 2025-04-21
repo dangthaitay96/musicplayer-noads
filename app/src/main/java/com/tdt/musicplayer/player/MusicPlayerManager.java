@@ -9,7 +9,6 @@ import android.widget.TextView;
 import com.tdt.musicplayer.models.PlaybackMode;
 import com.tdt.musicplayer.models.Song;
 import com.tdt.musicplayer.services.OnSongChangeListener;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +28,6 @@ public class MusicPlayerManager {
       songChangeListener.onSongChanged(song);
     }
   }
-
 
   public static MusicPlayerManager getInstance(
       Context context, SeekBar seekBar, TextView tvCurrentTime, TextView tvTotalTime) {
@@ -251,6 +249,16 @@ public class MusicPlayerManager {
       int current = mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
       seekBar.setProgress(current);
       tvCurrentTime.setText(formatTime(current));
+    }
+  }
+
+  public void setSongList(List<Song> newList) {
+    this.songList = newList;
+    // Nếu đang phát bài nào thì cập nhật currentIndex cho khớp
+    if (currentSong != null) {
+      currentIndex = songList.indexOf(currentSong);
+    } else {
+      currentIndex = 0;
     }
   }
 }

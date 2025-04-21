@@ -158,17 +158,17 @@ public class HomeFragment extends Fragment {
               songListAdapter.notifyDataSetChanged();
               discSwitcher.start();
             });
-      musicPlayerManager.setOnSongChangeListener(newSong -> {
+    musicPlayerManager.setOnSongChangeListener(
+        newSong -> {
           updateTitle(); // đổi tiêu đề bài đang phát
           songListAdapter.notifyDataSetChanged(); // cập nhật ListView
           int index = songList.indexOf(newSong);
           if (index >= 0) {
-              songListView.smoothScrollToPosition(index + songListView.getHeaderViewsCount());
+            songListView.smoothScrollToPosition(index + songListView.getHeaderViewsCount());
           }
-      });
+        });
 
-
-      songListView.setOnItemClickListener(
+    songListView.setOnItemClickListener(
         (parent, view1, position, id) -> {
           // Lưu ý: nếu có header, ta cần trừ số header
           int realPosition = position - songListView.getHeaderViewsCount();
@@ -280,6 +280,7 @@ public class HomeFragment extends Fragment {
     } else {
       //      songListAdapter.addAll(songList);
       homeViewModel.setSongList(songList);
+      musicPlayerManager.setSongList(songList);
       Toast.makeText(
               getContext(), "✅ Quét xong: " + songList.size() + " bài hát", Toast.LENGTH_SHORT)
           .show();
