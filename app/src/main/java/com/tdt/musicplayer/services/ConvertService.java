@@ -23,7 +23,12 @@ public class ConvertService {
   public void download(String youtubeUrl) {
     if (onStart != null) onStart.run();
 
-    OkHttpClient client = new OkHttpClient();
+    OkHttpClient client =
+        new OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .writeTimeout(1, java.util.concurrent.TimeUnit.MINUTES)
+            .build();
 
     RequestBody formBody = new FormBody.Builder().add("youtubeUrl", youtubeUrl).build();
 
