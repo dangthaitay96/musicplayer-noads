@@ -8,37 +8,28 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="horizontal"
-        android:weightSum="2"
-        android:gravity="center">
+        android:weightSum="2">
 
         <Button
             android:id="@+id/btn_scan_all"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="📡 Quét toàn bộ"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
             android:backgroundTint="#1E90FF"
-            android:textColor="#FFFFFF"
-            android:layout_marginEnd="8dp" />
+            android:text="📡 Quét toàn bộ"
+            android:textColor="#FFFFFF" />
 
         <Button
-            android:id="@+id/btn_pick_file"
+            android:id="@+id/btn_clear_list"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="📂 Chọn từ thiết bị"
-            android:backgroundTint="#32CD32"
+            android:layout_weight="1"
+            android:backgroundTint="#FF6347"
+            android:text="🗑️ Xoá danh sách"
             android:textColor="#FFFFFF" />
     </LinearLayout>
 
-    <!-- Dòng 2: Xoá danh sách -->
-    <Button
-        android:id="@+id/btn_clear_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🗑️ Xoá danh sách hiện tại"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="#FF6347"
-        android:textColor="#FFFFFF" />
 </LinearLayout>

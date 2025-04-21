@@ -5,7 +5,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0F8FF"
+    android:background="#2E2E2E"
     tools:context=".activities.MainActivity">
 
     <!-- Main content -->
@@ -39,8 +39,7 @@
             android:padding="4dp"
             android:scrollHorizontally="true"
             android:singleLine="true"
-            android:text="start"
-            android:textColor="#333"
+            android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -80,7 +79,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
-            android:progressTint="#1E90FF"
+            android:progressTint="#7F0000"
             android:thumbTint="#1E90FF" />
 
 
@@ -97,7 +96,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
-                android:textColor="#444"
+                android:textColor="@color/white"
                 android:textSize="12sp" />
 
             <View
@@ -110,7 +109,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
-                android:textColor="#444"
+                android:textColor="@color/white"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -131,7 +130,7 @@
                 android:layout_weight="1"
                 android:background="@drawable/rounded_button"
                 android:src="@android:drawable/ic_media_rew"
-                app:tint="#1E90FF" />
+                app:tint="#B71C1C" />
 
             <ImageButton
                 android:id="@+id/btn_prev"
@@ -140,7 +139,7 @@
                 android:layout_weight="1"
                 android:background="@drawable/rounded_button"
                 android:src="@android:drawable/ic_media_previous"
-                app:tint="#1E90FF" />
+                app:tint="#B71C1C" />
 
             <ImageButton
                 android:id="@+id/btn_play_pause"
@@ -149,7 +148,7 @@
                 android:layout_weight="1"
                 android:background="@drawable/rounded_button"
                 android:src="@android:drawable/ic_media_play"
-                app:tint="#4682B4" />
+                app:tint="#B71C1C" />
 
             <ImageButton
                 android:id="@+id/btn_next"
@@ -158,7 +157,7 @@
                 android:layout_weight="1"
                 android:background="@drawable/rounded_button"
                 android:src="@android:drawable/ic_media_next"
-                app:tint="#1E90FF" />
+                app:tint="#B71C1C" />
 
             <ImageButton
                 android:id="@+id/btn_forward_5s"
@@ -167,7 +166,7 @@
                 android:layout_weight="1"
                 android:background="@drawable/rounded_button"
                 android:src="@android:drawable/ic_media_ff"
-                app:tint="#1E90FF" />
+                app:tint="#B71C1C" />
         </LinearLayout>
 
         <TextView
@@ -192,7 +191,7 @@
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="#E6F0FA" />
+        android:background="#2E2E2E" />
 
 
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -5,7 +5,9 @@
     android:descendantFocusability="blocksDescendants"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="12dp">
+    android:padding="12dp"
+    android:background="@android:color/transparent"
+    android:duplicateParentState="true">
 
     <ImageView
         android:id="@+id/ivPlayIcon"
@@ -29,6 +31,7 @@
         android:marqueeRepeatLimit="marquee_forever"
         android:scrollHorizontally="true"
         android:singleLine="true"
-        android:textColor="#000"
-        android:textSize="14sp" />
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:duplicateParentState="true" />
 </LinearLayout>

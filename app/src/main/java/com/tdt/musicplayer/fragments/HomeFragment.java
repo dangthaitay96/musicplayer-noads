@@ -108,6 +108,7 @@ public class HomeFragment extends Fragment {
               boolean isCurrent = currentSong != null && thisSong.getId() == currentSong.getId();
               tv.setSelected(isCurrent);
               view.setBackgroundColor(isCurrent ? Color.parseColor("#FFF3E0") : Color.TRANSPARENT);
+              tv.setTextColor(isCurrent ? Color.parseColor("#B71C1C") : Color.WHITE);
             }
 
             if (ivPlay != null) {
@@ -147,7 +148,7 @@ public class HomeFragment extends Fragment {
               musicPlayerManager.playNext();
               updateTitle();
               songListAdapter.notifyDataSetChanged();
-                discSwitcher.start();
+              discSwitcher.start();
             });
     view.findViewById(R.id.btn_prev)
         .setOnClickListener(
@@ -155,10 +156,19 @@ public class HomeFragment extends Fragment {
               musicPlayerManager.playPrev();
               updateTitle();
               songListAdapter.notifyDataSetChanged();
-                discSwitcher.start();
+              discSwitcher.start();
             });
+      musicPlayerManager.setOnSongChangeListener(newSong -> {
+          updateTitle(); // đổi tiêu đề bài đang phát
+          songListAdapter.notifyDataSetChanged(); // cập nhật ListView
+          int index = songList.indexOf(newSong);
+          if (index >= 0) {
+              songListView.smoothScrollToPosition(index + songListView.getHeaderViewsCount());
+          }
+      });
 
-    songListView.setOnItemClickListener(
+
+      songListView.setOnItemClickListener(
         (parent, view1, position, id) -> {
           // Lưu ý: nếu có header, ta cần trừ số header
           int realPosition = position - songListView.getHeaderViewsCount();
@@ -172,7 +182,7 @@ public class HomeFragment extends Fragment {
               updateTitle();
               btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
               songListAdapter.notifyDataSetChanged();
-                discSwitcher.start();
+              discSwitcher.start();
               drawerLayout.closeDrawer(GravityCompat.START);
             }
           }
@@ -184,11 +194,11 @@ public class HomeFragment extends Fragment {
         v -> {
           if (musicPlayerManager.isPlaying()) {
             musicPlayerManager.pause();
-              discSwitcher.stop();
+            discSwitcher.stop();
             btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
           } else {
             musicPlayerManager.resume();
-              discSwitcher.start();
+            discSwitcher.start();
             btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
           }
         });
@@ -283,7 +293,7 @@ public class HomeFragment extends Fragment {
             musicPlayerManager.play(songList, realPosition);
             updateTitle();
             btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
-              discSwitcher.start();
+            discSwitcher.start();
             songListAdapter.notifyDataSetChanged();
             drawerLayout.closeDrawer(GravityCompat.START);
           }
@@ -299,18 +309,17 @@ public class HomeFragment extends Fragment {
     }
   }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        resumeDiscIfPlaying();
-    }
+  @Override
+  public void onResume() {
+    super.onResume();
+    resumeDiscIfPlaying();
+  }
 
-    private void resumeDiscIfPlaying() {
-        if (musicPlayerManager.isPlaying()) {
-            discSwitcher.start();
-        } else {
-            discSwitcher.stop();
-        }
+  private void resumeDiscIfPlaying() {
+    if (musicPlayerManager.isPlaying()) {
+      discSwitcher.start();
+    } else {
+      discSwitcher.stop();
     }
-
+  }
 }

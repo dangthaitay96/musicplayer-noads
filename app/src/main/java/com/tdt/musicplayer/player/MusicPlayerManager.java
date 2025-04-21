@@ -8,6 +8,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import com.tdt.musicplayer.models.PlaybackMode;
 import com.tdt.musicplayer.models.Song;
+import com.tdt.musicplayer.services.OnSongChangeListener;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -15,6 +17,19 @@ import java.util.Random;
 
 public class MusicPlayerManager {
   private static MusicPlayerManager instance;
+
+  private OnSongChangeListener songChangeListener;
+
+  public void setOnSongChangeListener(OnSongChangeListener listener) {
+    this.songChangeListener = listener;
+  }
+
+  private void notifySongChanged(Song song) {
+    if (songChangeListener != null) {
+      songChangeListener.onSongChanged(song);
+    }
+  }
+
 
   public static MusicPlayerManager getInstance(
       Context context, SeekBar seekBar, TextView tvCurrentTime, TextView tvTotalTime) {
@@ -139,6 +154,7 @@ public class MusicPlayerManager {
       mediaPlayer.prepare();
       mediaPlayer.start();
 
+      songChangeListener.onSongChanged(song);
       if (seekBar != null) seekBar.setMax(mediaPlayer.getDuration());
       if (tvTotalTime != null) tvTotalTime.setText(formatTime(mediaPlayer.getDuration()));
       setupSeekBarUpdater();

@@ -7,7 +7,7 @@
     <item
         android:id="@+id/nav_convert"
         android:icon="@drawable/baseline_cloud_sync_24"
-        android:title="Convert mp3" />
+        android:title="Pull" />
     <item
         android:id="@+id/nav_settings"
         android:icon="@android:drawable/ic_menu_preferences"
