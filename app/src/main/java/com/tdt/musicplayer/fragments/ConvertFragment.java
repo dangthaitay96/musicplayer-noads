@@ -14,6 +14,10 @@ import com.tdt.musicplayer.R;
 import com.tdt.musicplayer.services.ConvertService;
 import com.tdt.musicplayer.utils.ViewUtils;
 
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
+
+import java.io.IOException;
+
 public class ConvertFragment extends Fragment {
 
     private ConvertService convertService;
@@ -43,7 +47,13 @@ public class ConvertFragment extends Fragment {
                 return;
             }
 
-            convertService.download(url);
+            try {
+                convertService.download(url);
+            } catch (ExtractionException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         return viewConvert;
