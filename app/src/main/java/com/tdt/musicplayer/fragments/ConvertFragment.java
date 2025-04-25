@@ -47,13 +47,8 @@ public class ConvertFragment extends Fragment {
                 return;
             }
 
-            try {
                 convertService.download(url);
-            } catch (ExtractionException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+
         });
 
         return viewConvert;

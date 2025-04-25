@@ -44,6 +44,7 @@ dependencies {
     implementation("com.google.android.material:material:1.10.0")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.24.4")
+
     // Thay thế dependency
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2.LTS")
 
