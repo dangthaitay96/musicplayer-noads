@@ -13,8 +13,8 @@ public class SettingsFragment extends Fragment {
   @Override
   public View onCreateView(
       LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-      View viewSetting = inflater.inflate(R.layout.setting_fragment, container, false);
+    View viewSetting = inflater.inflate(R.layout.setting_fragment, container, false);
 
-      return viewSetting;
+    return viewSetting;
   }
 }
