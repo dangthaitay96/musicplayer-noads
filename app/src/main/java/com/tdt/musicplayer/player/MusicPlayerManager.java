@@ -159,6 +159,7 @@ public class MusicPlayerManager {
 
       mediaPlayer.setOnCompletionListener(
           mp -> {
+            mp.release();
             switch (playbackMode) {
               case NORMAL:
                 currentIndex++;

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.tdt.musicplayer.R;
+import com.tdt.musicplayer.services.AudioConverterManager;
 import com.tdt.musicplayer.services.ConvertService;
 import com.tdt.musicplayer.utils.ViewUtils;
 
@@ -20,7 +21,7 @@ import java.io.IOException;
 
 public class ConvertFragment extends Fragment {
 
-    private ConvertService convertService;
+    private AudioConverterManager audioConverterManager;
     private ProgressBar progressBar;
 
     @Nullable
@@ -32,13 +33,7 @@ public class ConvertFragment extends Fragment {
         Button btnConvert = viewConvert.findViewById(R.id.btn_convert);
         TextView textFeedback = viewConvert.findViewById(R.id.text_feedback);
         progressBar = viewConvert.findViewById(R.id.progress_bar);
-
-        // ✅ Khởi tạo ConvertService với callback loading
-        convertService = new ConvertService(
-                requireContext(),
-                () -> requireActivity().runOnUiThread(() -> progressBar.setVisibility(View.VISIBLE)),
-                () -> requireActivity().runOnUiThread(() -> progressBar.setVisibility(View.GONE))
-        );
+        audioConverterManager = new AudioConverterManager(requireContext());
 
         btnConvert.setOnClickListener(v -> {
             String url = editLink.getText().toString().trim();
@@ -47,7 +42,14 @@ public class ConvertFragment extends Fragment {
                 return;
             }
 
-                convertService.download(url);
+            audioConverterManager.startDownloadAndConvert(
+                    url,
+                    () -> { progressBar.setVisibility(View.VISIBLE); }, // onStart
+                    () -> { progressBar.setVisibility(View.GONE); },    // onSuccess
+                    () -> { progressBar.setVisibility(View.GONE); }     // onError
+            );
+
+
 
         });
 

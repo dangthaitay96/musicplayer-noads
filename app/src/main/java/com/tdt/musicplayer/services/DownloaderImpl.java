@@ -45,9 +45,8 @@ public class DownloaderImpl extends Downloader {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
     builder.addHeader("Accept-Language", request.localization().getLanguageCode());
     builder.addHeader("X-YouTube-Client-Name", "1");
-    builder.addHeader("X-YouTube-Client-Version", "18.13.35"); // hoặc phiên bản mới nhất của YouTube app
-
-
+    builder.addHeader(
+        "X-YouTube-Client-Version", "18.13.35"); // hoặc phiên bản mới nhất của YouTube app
 
     // Method
     String method = request.httpMethod();

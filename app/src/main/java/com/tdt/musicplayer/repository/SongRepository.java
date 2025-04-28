@@ -1,5 +1,6 @@
 package com.tdt.musicplayer.repository;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -10,6 +11,8 @@ import com.tdt.musicplayer.models.Song;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import android.os.Bundle;
+
 
 public class SongRepository {
   private static final String TAG = "SongRepository";
@@ -35,6 +38,10 @@ public class SongRepository {
     String selection =
         MediaStore.Audio.Media.IS_MUSIC + " != 0 AND " + MediaStore.Audio.Media.DATA + " LIKE ?";
     String[] selectionArgs = new String[] {targetPath + "%"};
+
+    Bundle queryArgs = new Bundle();
+    queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection);
+    queryArgs.putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs);
 
     try (Cursor cursor =
         context
