@@ -12,47 +12,47 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.tdt.musicplayer.R;
 import com.tdt.musicplayer.services.AudioConverterManager;
-import com.tdt.musicplayer.services.ConvertService;
 import com.tdt.musicplayer.utils.ViewUtils;
-
-import org.schabi.newpipe.extractor.exceptions.ExtractionException;
-
-import java.io.IOException;
 
 public class ConvertFragment extends Fragment {
 
-    private AudioConverterManager audioConverterManager;
-    private ProgressBar progressBar;
+  private AudioConverterManager audioConverterManager;
+  private ProgressBar progressBar;
 
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View viewConvert = inflater.inflate(R.layout.convert_fragment, container, false);
+  @Nullable
+  @Override
+  public View onCreateView(
+      LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View viewConvert = inflater.inflate(R.layout.convert_fragment, container, false);
 
-        EditText editLink = viewConvert.findViewById(R.id.edit_youtube_link);
-        Button btnConvert = viewConvert.findViewById(R.id.btn_convert);
-        TextView textFeedback = viewConvert.findViewById(R.id.text_feedback);
-        progressBar = viewConvert.findViewById(R.id.progress_bar);
-        audioConverterManager = new AudioConverterManager(requireContext());
+    EditText editLink = viewConvert.findViewById(R.id.edit_youtube_link);
+    Button btnConvert = viewConvert.findViewById(R.id.btn_convert);
+    TextView textFeedback = viewConvert.findViewById(R.id.text_feedback);
+    progressBar = viewConvert.findViewById(R.id.progress_bar);
+    audioConverterManager = new AudioConverterManager(requireContext());
 
-        btnConvert.setOnClickListener(v -> {
-            String url = editLink.getText().toString().trim();
-            if (url.isEmpty()) {
-                ViewUtils.showQuickFeedback(textFeedback, "Vui lòng nhập đường dẫn diu túp ");
-                return;
-            }
+    btnConvert.setOnClickListener(
+        v -> {
+          String url = editLink.getText().toString().trim();
+          if (url.isEmpty()) {
+            ViewUtils.showQuickFeedback(textFeedback, "Vui lòng nhập đường dẫn diu túp ");
+            return;
+          }
 
-            audioConverterManager.startDownloadAndConvert(
-                    url,
-                    () -> { progressBar.setVisibility(View.VISIBLE); }, // onStart
-                    () -> { progressBar.setVisibility(View.GONE); },    // onSuccess
-                    () -> { progressBar.setVisibility(View.GONE); }     // onError
-            );
-
-
-
+          audioConverterManager.startDownloadAndConvert(
+              url,
+              () -> {
+                progressBar.setVisibility(View.VISIBLE);
+              }, // onStart
+              () -> {
+                progressBar.setVisibility(View.GONE);
+              }, // onSuccess
+              () -> {
+                progressBar.setVisibility(View.GONE);
+              } // onError
+              );
         });
 
-        return viewConvert;
-    }
+    return viewConvert;
+  }
 }
