@@ -49,9 +49,6 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2.LTS")
 
 
-
-
-
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
