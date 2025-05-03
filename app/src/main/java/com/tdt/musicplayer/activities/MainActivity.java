@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.tdt.musicplayer.R;
-import com.tdt.musicplayer.fragments.ConvertFragment;
 import com.tdt.musicplayer.fragments.HomeFragment;
 import com.tdt.musicplayer.fragments.SettingsFragment;
 
@@ -24,8 +23,6 @@ public class MainActivity extends AppCompatActivity {
           Fragment selectedFragment = null;
           if (item.getItemId() == R.id.home_play) {
             selectedFragment = new HomeFragment();
-          } else if (item.getItemId() == R.id.nav_convert) {
-            selectedFragment = new ConvertFragment();
           } else if (item.getItemId() == R.id.nav_settings) {
             selectedFragment = new SettingsFragment();
           }
