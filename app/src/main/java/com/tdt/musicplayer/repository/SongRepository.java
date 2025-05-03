@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -11,8 +12,6 @@ import com.tdt.musicplayer.models.Song;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import android.os.Bundle;
-
 
 public class SongRepository {
   private static final String TAG = "SongRepository";
@@ -32,11 +31,9 @@ public class SongRepository {
     File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
     String targetPath = musicDir.getAbsolutePath();
     if (!targetPath.endsWith("/")) targetPath += "/";
-
     Log.d(TAG, "Scanning Music folder at: " + targetPath);
 
-    String selection =
-        MediaStore.Audio.Media.IS_MUSIC + " != 0 AND " + MediaStore.Audio.Media.DATA + " LIKE ?";
+    String selection = MediaStore.Audio.Media.DATA + " LIKE ?";
     String[] selectionArgs = new String[] {targetPath + "%"};
 
     Bundle queryArgs = new Bundle();
@@ -61,9 +58,6 @@ public class SongRepository {
           String artist = cursor.getString(2);
           String path = cursor.getString(3);
           int duration = cursor.getInt(4);
-
-          Log.d(TAG, "Song: " + title + " | Path: " + path);
-          Log.d(TAG, "Loaded: " + id + " | " + title);
           songList.add(new Song(id, title, artist, path, duration));
         }
       } else {
@@ -72,7 +66,6 @@ public class SongRepository {
     } catch (Exception e) {
       Log.e(TAG, "Error loading songs: " + e.getMessage(), e);
     }
-
     return songList;
   }
 }
