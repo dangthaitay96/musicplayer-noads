@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import java.io.File;
 import java.text.Normalizer;
 import java.util.List;
@@ -25,17 +26,20 @@ public class AudioConverterManager {
 
   public void startDownloadAndConvert(
       String youtubeUrl, Runnable onStart, Runnable onSuccess, Runnable onFail) {
+
     onStart.run();
 
     new Thread(
             () -> {
+              File mp3File = null;
               try {
+                // Khởi tạo NewPipe
                 NewPipe.init(DownloaderImpl.getInstance());
                 StreamInfo streamInfo = StreamInfo.getInfo(NewPipe.getService(0), youtubeUrl);
 
                 List<AudioStream> audioStreams = streamInfo.getAudioStreams();
                 if (audioStreams == null || audioStreams.isEmpty()) {
-                  throw new Exception("Không tìm thấy audio");
+                  throw new Exception("Không tìm thấy audio stream.");
                 }
 
                 AudioStream audioStream = audioStreams.get(0);
@@ -44,24 +48,41 @@ public class AudioConverterManager {
                 File downloadDir =
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
                 if (!downloadDir.exists()) downloadDir.mkdirs();
+
                 String songName = sanitizeFileName(streamInfo.getName());
-                // 📥 Download
+
+                // 📥 Tải file M4A
                 File m4aFile = downloadService.downloadAudio(audioUrl, downloadDir, songName);
 
-                // 🔥 Convert
-                File mp3File = convertService.convertToMp3(m4aFile, downloadDir, songName);
+                // 🔄 Chuyển đổi sang MP3
+                mp3File = convertService.convertToMp3(m4aFile, downloadDir, songName);
 
-                // ✅ Delete temp file
-                m4aFile.delete();
-
-                // 📢 Notify success
-                new Handler(Looper.getMainLooper()).post(onSuccess);
+                // ❌ Xoá file tạm .m4a (không để lỗi này ảnh hưởng)
+                try {
+                  if (!m4aFile.delete()) {
+                    Log.w(
+                        "AudioConverterManager",
+                        "Không thể xoá file tạm: " + m4aFile.getAbsolutePath());
+                  }
+                } catch (Exception ex) {
+                  Log.e("AudioConverterManager", "Lỗi khi xoá file m4a: " + ex.getMessage());
+                }
 
               } catch (Exception e) {
-                e.printStackTrace();
-                // 📢 Notify fail
-                new Handler(Looper.getMainLooper()).post(onFail);
+                Log.e("AudioConverterManager", "Lỗi khi tải/convert: " + e.getMessage(), e);
               }
+
+              // ✅ Kiểm tra kết quả và phản hồi UI
+              File finalMp3File = mp3File; // để dùng trong lambda
+              new Handler(Looper.getMainLooper())
+                  .post(
+                      () -> {
+                        if (finalMp3File != null && finalMp3File.exists()) {
+                          onSuccess.run();
+                        } else {
+                          onFail.run();
+                        }
+                      });
             })
         .start();
   }
@@ -73,8 +94,6 @@ public class AudioConverterManager {
             .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
             .replaceAll("đ", "d")
             .replaceAll("Đ", "D");
-
-    // Loại bỏ các ký tự cấm
     return noDiacritics.replaceAll("[\\\\/:*?\"<>|]", "_").replaceAll("[^\\x20-\\x7E]", "_");
   }
 }
