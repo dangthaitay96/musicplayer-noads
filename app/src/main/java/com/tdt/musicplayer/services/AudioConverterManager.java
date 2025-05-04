@@ -8,6 +8,7 @@ import android.util.Log;
 import java.io.File;
 import java.text.Normalizer;
 import java.util.List;
+import java.util.function.Consumer;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
@@ -25,7 +26,11 @@ public class AudioConverterManager {
   }
 
   public void startDownloadAndConvert(
-      String youtubeUrl, Runnable onStart, Runnable onSuccess, Runnable onFail) {
+      String youtubeUrl,
+      Runnable onStart,
+      Runnable onSuccess,
+      Runnable onFail,
+      Consumer<String> onTitleReady) {
 
     onStart.run();
 
@@ -36,6 +41,13 @@ public class AudioConverterManager {
                 // Khởi tạo NewPipe
                 NewPipe.init(DownloaderImpl.getInstance());
                 StreamInfo streamInfo = StreamInfo.getInfo(NewPipe.getService(0), youtubeUrl);
+
+                // Gọi callback truyền tên bài hát
+                if (onTitleReady != null) {
+                  new Handler(Looper.getMainLooper()).post(() -> {
+                    onTitleReady.accept(streamInfo.getName());
+                  });
+                }
 
                 List<AudioStream> audioStreams = streamInfo.getAudioStreams();
                 if (audioStreams == null || audioStreams.isEmpty()) {

@@ -40,6 +40,7 @@ public class ConvertFragment extends Fragment {
     TextView textFeedback = viewConvert.findViewById(R.id.text_feedback);
     progressBar = viewConvert.findViewById(R.id.progress_download);
     audioConverterManager = new AudioConverterManager(requireContext());
+    TextView textDescription = viewConvert.findViewById(R.id.text_description);
 
     // Quan sát LiveData và cập nhật EditText khi có thay đổi
     viewModel
@@ -49,7 +50,29 @@ public class ConvertFragment extends Fragment {
             link -> {
               if (link != null && !link.equals(editLink.getText().toString())) {
                 editLink.setText(link);
-                editLink.setSelection(link.length()); // Đặt con trỏ về cuối
+                editLink.setSelection(link.length());
+              }
+            });
+    viewModel
+        .getIsConverting()
+        .observe(
+            getViewLifecycleOwner(),
+            converting -> {
+              String link = viewModel.getLink().getValue();
+              boolean hasLink = link != null && !link.trim().isEmpty();
+              btnConvert.setEnabled(!converting && hasLink);
+            });
+
+    viewModel
+        .getSongTitle()
+        .observe(
+            getViewLifecycleOwner(),
+            title -> {
+              if (title != null && !title.isEmpty()) {
+                textDescription.setText("🎵 Bài hát: " + title);
+              } else {
+                textDescription.setText(
+                    "Nhập đường dẫn diu túp và nhấn lấy file nhạc về thiết bị.");
               }
             });
 
@@ -61,7 +84,8 @@ public class ConvertFragment extends Fragment {
 
           @Override
           public void onTextChanged(CharSequence s, int start, int before, int count) {
-            viewModel.setYoutubeLink(s.toString());
+            viewModel.setLink(s.toString());
+            btnConvert.setEnabled(!s.toString().trim().isEmpty());
           }
 
           @Override
@@ -76,22 +100,29 @@ public class ConvertFragment extends Fragment {
             ViewUtils.showQuickFeedback(textFeedback, "Vui lòng nhập đường dẫn diu túp ");
             return;
           }
+          btnConvert.setEnabled(false);
+          viewModel.setIsConverting(true);
 
           audioConverterManager.startDownloadAndConvert(
               url,
-              () -> progressBar.setVisibility(View.VISIBLE), // onStart
+              () -> progressBar.setVisibility(View.VISIBLE),
               () -> {
                 progressBar.setVisibility(View.GONE);
                 ViewUtils.showQuickFeedback(textFeedback, "Tải và chuyển đổi thành công");
-                editLink.setText(""); // 🧹 reset input sau khi thành công
-                viewModel.setYoutubeLink(""); // cập nhật luôn ViewModel nếu cần
-              }, // onSuccess
+                editLink.setText("");
+                viewModel.setLink("");
+                btnConvert.setEnabled(false);
+                textDescription.setText(
+                    "Nhập đường dẫn diu túp và nhấn lấy file nhạc về thiết bị.");
+              },
               () -> {
                 progressBar.setVisibility(View.GONE);
                 ViewUtils.showQuickFeedback(textFeedback, "Đã xảy ra lỗi khi xử lý link");
-              }
-              // onError
-              );
+                btnConvert.setEnabled(true);
+              },
+              title -> {
+                viewModel.setSongTitle(title);
+              });
         });
 
     return viewConvert;
