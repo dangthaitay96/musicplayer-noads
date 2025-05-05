@@ -5,7 +5,9 @@ import android.app.AlertDialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.InputFilter;
 import android.text.InputType;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -380,38 +382,45 @@ public class HomeFragment extends Fragment {
     }
   }
 
-    private void showCustomTimerDialog() {
-        EditText input = new EditText(requireContext());
-        input.setHint("Nhập số phút");
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        input.setBackgroundResource(R.drawable.bg_dialog_input); // bo góc
-        input.setPadding(32, 24, 32, 24);
-        input.setTextColor(Color.BLACK);
+  private void showCustomTimerDialog() {
+    EditText input = new EditText(requireContext());
+    input.setHint("Nhập số phút");
+    input.setInputType(InputType.TYPE_CLASS_NUMBER);
+    input.setBackgroundResource(R.drawable.bg_dialog_input); // bo góc
+    input.setPadding(20, 12, 20, 12);
+    input.setTextColor(Color.BLACK);
 
-        AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setTitle("⏰ Hẹn giờ tắt nhạc")
-                .setView(input)
-                .setPositiveButton("Đặt", (d, which) -> {
-                    String text = input.getText().toString().trim();
-                    if (!text.isEmpty()) {
-                        long minutes = Long.parseLong(text);
-                        startSleepTimer(minutes * 60_000);
-                    }
+    input.setFilters(new InputFilter[] {new InputFilter.LengthFilter(3)}); // Giới hạn 3 số
+    input.setGravity(Gravity.CENTER);
+
+    AlertDialog dialog =
+        new AlertDialog.Builder(requireContext())
+            .setTitle("⏰ Hẹn giờ tắt nhạc")
+            .setView(input)
+            .setPositiveButton(
+                "Đặt",
+                (d, which) -> {
+                  String text = input.getText().toString().trim();
+                  if (!text.isEmpty()) {
+                    long minutes = Long.parseLong(text);
+                    startSleepTimer(minutes * 60_000);
+                  }
                 })
-                .setNegativeButton("Huỷ", null)
-                .create();
+            .setNegativeButton("Huỷ", null)
+            .create();
 
-        // Làm bo tròn cả dialog (áp dụng sau khi show)
-        dialog.setOnShowListener(d -> {
-            Objects.requireNonNull(dialog.getWindow())
-                    .setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.bg_dialog_input));
+    // Làm bo tròn cả dialog (áp dụng sau khi show)
+    dialog.setOnShowListener(
+        d -> {
+          Objects.requireNonNull(dialog.getWindow())
+              .setBackgroundDrawable(
+                  ContextCompat.getDrawable(requireContext(), R.drawable.bg_dialog_input));
         });
 
-        dialog.show();
-    }
+    dialog.show();
+  }
 
-
-    @Override
+  @Override
   public void onResume() {
     super.onResume();
   }
