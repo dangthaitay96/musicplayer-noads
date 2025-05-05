@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
@@ -46,7 +45,6 @@ public class HomeFragment extends Fragment {
   private HomeViewModel homeViewModel;
   private PlayerViewModel playerViewModel;
   private DiscSwitcher discSwitcher;
-  private CountDownTimer countDownTimer;
   private boolean isSleepTimerRunning = false;
   private SleepTimerViewModel sleepTimerViewModel;
 
@@ -76,7 +74,7 @@ public class HomeFragment extends Fragment {
               songListAdapter.addAll(songs);
               songListAdapter.notifyDataSetChanged();
 
-              boolean hasSongs = songs != null && !songs.isEmpty();
+              boolean hasSongs = !songs.isEmpty();
 
               btnPlayPause.setEnabled(hasSongs);
               view.findViewById(R.id.btn_prev).setEnabled(hasSongs);
@@ -193,10 +191,7 @@ public class HomeFragment extends Fragment {
     sleepTimerViewModel
         .isRunning()
         .observe(
-            getViewLifecycleOwner(),
-            running -> {
-              isSleepTimerRunning = running != null && running;
-            });
+            getViewLifecycleOwner(), running -> isSleepTimerRunning = running != null && running);
 
     songListAdapter =
         new ArrayAdapter<Song>(
