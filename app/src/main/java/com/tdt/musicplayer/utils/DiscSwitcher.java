@@ -26,6 +26,11 @@ public class DiscSwitcher {
         public void run() {
           currentIndex = (currentIndex + 1) % imageResources.length;
           imageView.setImageResource(imageResources[currentIndex]);
+
+          if (indexChangeListener != null) {
+            indexChangeListener.onDiscIndexChanged(currentIndex);
+          }
+
           handler.postDelayed(this, 60_000); // đổi mỗi 1 phút
         }
       };
