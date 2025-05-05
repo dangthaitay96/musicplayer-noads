@@ -1,5 +1,6 @@
 package com.tdt.musicplayer.fragments;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -25,6 +26,7 @@ public class ConvertFragment extends Fragment {
   private EditText editLink;
   private ConvertViewModel viewModel;
 
+  @SuppressLint("SetTextI18n")
   @Nullable
   @Override
   public View onCreateView(

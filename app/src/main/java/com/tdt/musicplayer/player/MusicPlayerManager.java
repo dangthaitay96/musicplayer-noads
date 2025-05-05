@@ -143,50 +143,53 @@ public class MusicPlayerManager {
   private void playSong(Song song) {
     try {
       if (mediaPlayer != null) {
-        mediaPlayer.stop();
-        mediaPlayer.release();
+        try {
+          mediaPlayer.reset(); // An toàn hơn stop
+        } catch (IllegalStateException e) {
+          Log.w("MusicPlayerManager", "Reset failed, re-creating MediaPlayer", e);
+          mediaPlayer.release();
+          mediaPlayer = new MediaPlayer();
+        }
+      } else {
+        mediaPlayer = new MediaPlayer();
       }
+
       currentSong = song;
-      mediaPlayer = new MediaPlayer();
       mediaPlayer.setDataSource(song.getFilePath());
       mediaPlayer.prepare();
       mediaPlayer.start();
 
-      songChangeListener.onSongChanged(song);
+      if (songChangeListener != null) songChangeListener.onSongChanged(song);
+
       if (seekBar != null) seekBar.setMax(mediaPlayer.getDuration());
       if (tvTotalTime != null) tvTotalTime.setText(formatTime(mediaPlayer.getDuration()));
       setupSeekBarUpdater();
 
       mediaPlayer.setOnCompletionListener(
           mp -> {
-            mp.release();
             switch (playbackMode) {
               case NORMAL:
                 currentIndex++;
                 if (currentIndex < songList.size()) {
-                  currentSong = songList.get(currentIndex);
-                  playSong(currentSong);
+                  playSong(songList.get(currentIndex));
                 }
                 break;
               case REPEAT_ALL:
                 currentIndex = (currentIndex + 1) % songList.size();
-                currentSong = songList.get(currentIndex);
-                playSong(currentSong);
+                playSong(songList.get(currentIndex));
                 break;
               case REPEAT_ONE:
                 playSong(currentSong);
                 break;
               case SHUFFLE:
                 currentIndex = getRandomIndexExcept(songList.size(), currentIndex);
-                currentSong = songList.get(currentIndex);
-                playSong(currentSong);
+                playSong(songList.get(currentIndex));
                 break;
             }
           });
 
     } catch (IOException e) {
-      Log.e("MusicPlayerManager", "💥 ERROR: " + e.getMessage(), e);
-      e.printStackTrace();
+      Log.e("MusicPlayerManager", "playSong() error: " + e.getMessage(), e);
     }
   }
 

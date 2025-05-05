@@ -10,7 +10,6 @@ public class HomeViewModel extends ViewModel {
   private final MutableLiveData<List<Song>> songListLiveData;
 
   public HomeViewModel() {
-    // Khởi tạo với danh sách rỗng
     songListLiveData = new MutableLiveData<>(new ArrayList<>());
   }
 

@@ -6,6 +6,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import com.tdt.musicplayer.R;
+import com.tdt.musicplayer.services.OnDiscIndexChangeListener;
 
 public class DiscSwitcher {
 
@@ -14,6 +15,7 @@ public class DiscSwitcher {
   private final int[] imageResources;
   private final Animation rotateAnimation;
   private final Handler handler = new Handler();
+  private OnDiscIndexChangeListener indexChangeListener;
 
   private int currentIndex = 0;
   private boolean isRunning = false;
@@ -53,5 +55,20 @@ public class DiscSwitcher {
   public void reset() {
     currentIndex = 0;
     imageView.setImageResource(imageResources[currentIndex]);
+  }
+
+  public int getCurrentIndex() {
+    return currentIndex;
+  }
+
+  public void setCurrentIndex(int index) {
+    if (index >= 0 && index < imageResources.length) {
+      this.currentIndex = index;
+      imageView.setImageResource(imageResources[currentIndex]);
+    }
+  }
+
+  public void setOnDiscIndexChangeListener(OnDiscIndexChangeListener listener) {
+    this.indexChangeListener = listener;
   }
 }
