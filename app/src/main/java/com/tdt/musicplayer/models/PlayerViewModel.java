@@ -11,6 +11,7 @@ public class PlayerViewModel extends ViewModel {
       new MutableLiveData<>(PlaybackMode.NORMAL);
   private final MutableLiveData<Boolean> isDiscSpinning = new MutableLiveData<>(false);
   private final MutableLiveData<Integer> currentDiscIndex = new MutableLiveData<>(0);
+  private final MutableLiveData<Long> sleepTimerRemaining = new MutableLiveData<>(0L);
 
   public LiveData<Song> getCurrentSong() {
     return currentSong;
@@ -50,5 +51,13 @@ public class PlayerViewModel extends ViewModel {
 
   public void setCurrentDiscIndex(int index) {
     currentDiscIndex.setValue(index);
+  }
+
+  public LiveData<Long> getSleepTimerRemaining() {
+    return sleepTimerRemaining;
+  }
+
+  public void setSleepTimerRemaining(long millis) {
+    sleepTimerRemaining.setValue(millis);
   }
 }

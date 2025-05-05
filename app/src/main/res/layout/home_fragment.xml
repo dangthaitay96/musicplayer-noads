@@ -16,15 +16,50 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <ImageButton
-            android:id="@+id/btn_menu"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="top|end"
-            android:layout_margin="16dp"
-            android:background="@drawable/rounded_button"
-            android:src="@drawable/baseline_list_alt_24"
-            app:tint="#4682B4" />
+<!--        <ImageButton-->
+<!--            android:id="@+id/btn_menu"-->
+<!--            android:layout_width="48dp"-->
+<!--            android:layout_height="48dp"-->
+<!--            android:layout_gravity="top|end"-->
+<!--            android:layout_margin="16dp"-->
+<!--            android:background="@drawable/rounded_button"-->
+<!--            android:src="@drawable/baseline_list_alt_24"-->
+<!--            app:tint="#4682B4" />-->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp">
+
+            <!-- Đồng hồ đếm ngược nằm giữa -->
+            <TextView
+                android:id="@+id/tv_sleep_timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFB300"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:padding="4dp" />
+
+            <!-- Spacer để đẩy nút về bên phải -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Nút menu nằm bên phải -->
+            <ImageButton
+                android:id="@+id/btn_menu"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/rounded_button"
+                android:src="@drawable/baseline_list_alt_24"
+                app:tint="#4682B4" />
+        </LinearLayout>
+
 
 
         <TextView
@@ -59,7 +94,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:orientation="horizontal"
-            android:paddingStart="8dp">
+            android:paddingHorizontal="8dp"
+            android:gravity="center_vertical">
 
             <ImageButton
                 android:id="@+id/btn_playback_mode"
@@ -69,7 +105,22 @@
                 android:contentDescription="Playback Mode"
                 android:src="@drawable/ic_repeat"
                 app:tint="#1E90FF" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/btn_timer"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/rounded_button"
+                android:contentDescription="Sleep Timer"
+                android:src="@drawable/ic_timer"
+                app:tint="#1E90FF" />
         </LinearLayout>
+
 
         <!-- SeekBar để tua và hiển thị thời gian -->
         <SeekBar
