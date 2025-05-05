@@ -23,6 +23,7 @@ import com.tdt.musicplayer.R;
 import com.tdt.musicplayer.models.HomeViewModel;
 import com.tdt.musicplayer.models.PlaybackMode;
 import com.tdt.musicplayer.models.PlayerViewModel;
+import com.tdt.musicplayer.models.SleepTimerViewModel;
 import com.tdt.musicplayer.models.Song;
 import com.tdt.musicplayer.player.MusicPlayerManager;
 import com.tdt.musicplayer.repository.SongRepository;
@@ -46,6 +47,8 @@ public class HomeFragment extends Fragment {
   private PlayerViewModel playerViewModel;
   private DiscSwitcher discSwitcher;
   private CountDownTimer countDownTimer;
+  private boolean isSleepTimerRunning = false;
+  private SleepTimerViewModel sleepTimerViewModel;
 
   @Nullable
   @Override
@@ -123,8 +126,8 @@ public class HomeFragment extends Fragment {
     songTitle = view.findViewById(R.id.song_title);
     ImageView rotatingImage = view.findViewById(R.id.rotating_image);
     discSwitcher = new DiscSwitcher(getContext(), rotatingImage, DiscImageProvider.getDiscImages());
-
     discSwitcher.setOnDiscIndexChangeListener(index -> playerViewModel.setCurrentDiscIndex(index));
+    sleepTimerViewModel = new ViewModelProvider(requireActivity()).get(SleepTimerViewModel.class);
 
     musicPlayerManager =
         MusicPlayerManager.getInstance(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
@@ -148,6 +151,32 @@ public class HomeFragment extends Fragment {
               } else {
                 countdownText.setVisibility(View.GONE);
               }
+            });
+
+    sleepTimerViewModel
+        .getRemainingTime()
+        .observe(
+            getViewLifecycleOwner(),
+            millis -> {
+              TextView countdownText = view.findViewById(R.id.tv_sleep_timer);
+              if (millis != null && millis > 0) {
+                long hours = millis / (1000 * 60 * 60);
+                long minutes = (millis / (1000 * 60)) % 60;
+                long seconds = (millis / 1000) % 60;
+                countdownText.setText(String.format("⏰ %02d:%02d:%02d", hours, minutes, seconds));
+
+                countdownText.setVisibility(View.VISIBLE);
+              } else {
+                countdownText.setVisibility(View.GONE);
+              }
+            });
+
+    sleepTimerViewModel
+        .isRunning()
+        .observe(
+            getViewLifecycleOwner(),
+            running -> {
+              isSleepTimerRunning = running != null && running;
             });
 
     songListAdapter =
@@ -352,51 +381,49 @@ public class HomeFragment extends Fragment {
   }
 
   private void startSleepTimer(long millis) {
-    cancelSleepTimer();
-
-    countDownTimer =
-        new CountDownTimer(millis, 1_000) {
-          @Override
-          public void onTick(long millisUntilFinished) {
-            playerViewModel.setSleepTimerRemaining(millisUntilFinished);
+    sleepTimerViewModel.start(
+        millis,
+        () -> {
+          musicPlayerManager.pause();
+          if (isAdded() && getContext() != null) {
+            Toast.makeText(getContext(), "⏰ Đã tắt nhạc sau hẹn giờ", Toast.LENGTH_SHORT).show();
           }
-
-          @Override
-          public void onFinish() {
-            playerViewModel.setSleepTimerRemaining(0);
-            musicPlayerManager.pause();
-            Toast.makeText(requireContext(), "⏰ Đã tắt nhạc sau hẹn giờ", Toast.LENGTH_SHORT)
-                .show();
-          }
-        };
-    countDownTimer.start();
+        });
     Toast.makeText(requireContext(), "⏳ Đã đặt hẹn giờ", Toast.LENGTH_SHORT).show();
   }
 
   private void cancelSleepTimer() {
-    if (countDownTimer != null) {
-      countDownTimer.cancel();
-      countDownTimer = null;
-      playerViewModel.setSleepTimerRemaining(0);
-      Toast.makeText(requireContext(), "❌ Đã huỷ hẹn giờ", Toast.LENGTH_SHORT).show();
-    }
+    sleepTimerViewModel.cancel();
+    Toast.makeText(requireContext(), "❌ Đã huỷ hẹn giờ", Toast.LENGTH_SHORT).show();
   }
 
   private void showCustomTimerDialog() {
     EditText input = new EditText(requireContext());
     input.setHint("Nhập số phút");
     input.setInputType(InputType.TYPE_CLASS_NUMBER);
-    input.setBackgroundResource(R.drawable.bg_dialog_input); // bo góc
-    input.setPadding(20, 12, 20, 12);
+    input.setBackgroundResource(R.drawable.bg_dialog_input);
     input.setTextColor(Color.BLACK);
-
-    input.setFilters(new InputFilter[] {new InputFilter.LengthFilter(3)}); // Giới hạn 3 số
+    input.setPadding(24, 16, 24, 16);
+    input.setFilters(new InputFilter[] {new InputFilter.LengthFilter(3)});
     input.setGravity(Gravity.CENTER);
 
-    AlertDialog dialog =
+    LinearLayout container = new LinearLayout(requireContext());
+    container.setOrientation(LinearLayout.VERTICAL);
+    container.setPadding(24, 24, 24, 0);
+
+    LinearLayout.LayoutParams params =
+        new LinearLayout.LayoutParams(
+            (int) (getResources().getDisplayMetrics().density * 240),
+            ViewGroup.LayoutParams.WRAP_CONTENT);
+    input.setLayoutParams(params);
+
+    container.addView(input);
+
+    AlertDialog.Builder builder =
         new AlertDialog.Builder(requireContext())
             .setTitle("⏰ Hẹn giờ tắt nhạc")
-            .setView(input)
+            .setView(container)
+            .setNegativeButton("Huỷ", null)
             .setPositiveButton(
                 "Đặt",
                 (d, which) -> {
@@ -405,18 +432,19 @@ public class HomeFragment extends Fragment {
                     long minutes = Long.parseLong(text);
                     startSleepTimer(minutes * 60_000);
                   }
-                })
-            .setNegativeButton("Huỷ", null)
-            .create();
+                });
 
-    // Làm bo tròn cả dialog (áp dụng sau khi show)
+    if (isSleepTimerRunning) {
+      // Thêm nút "Tắt hẹn giờ" nếu đang chạy
+      builder.setNeutralButton("Tắt hẹn giờ", (d, which) -> cancelSleepTimer());
+    }
+
+    AlertDialog dialog = builder.create();
     dialog.setOnShowListener(
-        d -> {
-          Objects.requireNonNull(dialog.getWindow())
-              .setBackgroundDrawable(
-                  ContextCompat.getDrawable(requireContext(), R.drawable.bg_dialog_input));
-        });
-
+        d ->
+            Objects.requireNonNull(dialog.getWindow())
+                .setBackgroundDrawable(
+                    ContextCompat.getDrawable(requireContext(), R.drawable.bg_dialog_input)));
     dialog.show();
   }
 
