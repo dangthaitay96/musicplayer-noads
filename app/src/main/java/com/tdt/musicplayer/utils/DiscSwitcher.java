@@ -31,7 +31,7 @@ public class DiscSwitcher {
             indexChangeListener.onDiscIndexChanged(currentIndex);
           }
 
-          handler.postDelayed(this, 60_000); // đổi mỗi 1 phút
+          handler.postDelayed(this, 60000); // đổi mỗi 1 phút
         }
       };
 
