@@ -75,6 +75,14 @@ public class HomeFragment extends Fragment {
               songListAdapter.clear();
               songListAdapter.addAll(songs);
               songListAdapter.notifyDataSetChanged();
+
+              boolean hasSongs = songs != null && !songs.isEmpty();
+
+              btnPlayPause.setEnabled(hasSongs);
+              view.findViewById(R.id.btn_prev).setEnabled(hasSongs);
+              view.findViewById(R.id.btn_next).setEnabled(hasSongs);
+              view.findViewById(R.id.btn_forward_5s).setEnabled(hasSongs);
+              view.findViewById(R.id.btn_back_5s).setEnabled(hasSongs);
             });
 
     playerViewModel
@@ -117,6 +125,11 @@ public class HomeFragment extends Fragment {
 
   @SuppressLint("DefaultLocale")
   private void setupUI(View view) {
+    ImageButton btnPrev = view.findViewById(R.id.btn_prev);
+    ImageButton btnNext = view.findViewById(R.id.btn_next);
+    ImageButton btnForward = view.findViewById(R.id.btn_forward_5s);
+    ImageButton btnBackward = view.findViewById(R.id.btn_back_5s);
+
     drawerLayout = view.findViewById(R.id.drawer_layout);
     songListView = view.findViewById(R.id.song_list_view);
     btnPlayPause = view.findViewById(R.id.btn_play_pause);
@@ -128,6 +141,12 @@ public class HomeFragment extends Fragment {
     discSwitcher = new DiscSwitcher(getContext(), rotatingImage, DiscImageProvider.getDiscImages());
     discSwitcher.setOnDiscIndexChangeListener(index -> playerViewModel.setCurrentDiscIndex(index));
     sleepTimerViewModel = new ViewModelProvider(requireActivity()).get(SleepTimerViewModel.class);
+
+    btnPlayPause.setEnabled(false);
+    btnPrev.setEnabled(false);
+    btnNext.setEnabled(false);
+    btnForward.setEnabled(false);
+    btnBackward.setEnabled(false);
 
     musicPlayerManager =
         MusicPlayerManager.getInstance(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
