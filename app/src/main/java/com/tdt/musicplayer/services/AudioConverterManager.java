@@ -1,6 +1,5 @@
 package com.tdt.musicplayer.services;
 
-import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,19 +8,17 @@ import java.io.File;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 
 public class AudioConverterManager {
-
-  private final Context context;
   private final DownloadService downloadService;
   private final ConvertService convertService;
 
-  public AudioConverterManager(Context context) {
-    this.context = context;
+  public AudioConverterManager() {
     this.downloadService = new DownloadService();
     this.convertService = new ConvertService();
   }
@@ -38,7 +35,7 @@ public class AudioConverterManager {
 
     new Thread(
             () -> {
-              File mp3File = null;
+              AtomicReference<File> mp3FileRef = new AtomicReference<>(null);
               AtomicBoolean convertDone = new AtomicBoolean(false);
               AtomicBoolean progressDone = new AtomicBoolean(false);
 
@@ -48,10 +45,7 @@ public class AudioConverterManager {
 
                 if (onTitleReady != null) {
                   new Handler(Looper.getMainLooper())
-                      .post(
-                          () -> {
-                            onTitleReady.accept(streamInfo.getName());
-                          });
+                      .post(() -> onTitleReady.accept(streamInfo.getName()));
                 }
 
                 List<AudioStream> audioStreams = streamInfo.getAudioStreams();
@@ -68,13 +62,26 @@ public class AudioConverterManager {
 
                 String songName = sanitizeFileName(streamInfo.getName());
 
-                File m4aFile =
-                    downloadService.downloadAudio(audioUrl, downloadDir, songName, onProgress);
+                File m4aFile;
+                try {
+                  m4aFile =
+                      downloadService.downloadAudio(audioUrl, downloadDir, songName, onProgress);
+                } catch (Exception e) {
+                  Log.e("AudioConverterManager", "Lỗi khi tải file: " + e.getMessage(), e);
+                  new Handler(Looper.getMainLooper()).post(onFail);
+                  return;
+                }
 
-                File finalMp3File = mp3File;
+                if (!m4aFile.exists() || m4aFile.length() < 200 * 1024) {
+                  Log.e("AudioConverterManager", "File m4a không hợp lệ hoặc quá nhỏ.");
+                  if (m4aFile.exists()) m4aFile.delete();
+                  new Handler(Looper.getMainLooper()).post(onFail);
+                  return;
+                }
+
                 new Thread(
                         () -> {
-                          for (int p = 81; p <= 100; p++) {
+                          for (int p = 71; p <= 100; p++) {
                             int finalP = p;
                             new Handler(Looper.getMainLooper())
                                 .post(
@@ -88,7 +95,7 @@ public class AudioConverterManager {
                           }
                           progressDone.set(true);
                           checkAndFinish(
-                              finalMp3File,
+                              mp3FileRef.get(),
                               onSuccess,
                               onFail,
                               convertDone.get(),
@@ -96,14 +103,9 @@ public class AudioConverterManager {
                         })
                     .start();
 
-                mp3File = convertService.convertToMp3(m4aFile, downloadDir, songName);
+                File mp3File = convertService.convertToMp3(m4aFile, downloadDir, songName);
+                mp3FileRef.set(mp3File);
                 convertDone.set(true);
-                  checkAndFinish(
-                          finalMp3File,
-                          onSuccess,
-                          onFail,
-                          convertDone.get(),
-                          progressDone.get());
 
                 try {
                   if (!m4aFile.delete()) {
@@ -145,7 +147,7 @@ public class AudioConverterManager {
       new Handler(Looper.getMainLooper())
           .post(
               () -> {
-                if (mp3File != null && mp3File.exists()) {
+                if (mp3File != null && mp3File.exists() && mp3File.length() > 200 * 1024) {
                   onSuccess.run();
                 } else {
                   onFail.run();

@@ -37,7 +37,7 @@ public class ConvertFragment extends Fragment {
     Button btnConvert = viewConvert.findViewById(R.id.btn_convert);
     TextView textFeedback = viewConvert.findViewById(R.id.text_feedback);
     progressBar = viewConvert.findViewById(R.id.progress_download);
-    audioConverterManager = new AudioConverterManager(requireContext());
+    audioConverterManager = new AudioConverterManager();
     TextView textDescription = viewConvert.findViewById(R.id.text_description);
     TextView progressText = viewConvert.findViewById(R.id.progress_text);
 
@@ -143,9 +143,7 @@ public class ConvertFragment extends Fragment {
                 ViewUtils.showQuickFeedback(textFeedback, "Đã xảy ra lỗi khi xử lý link");
                 btnConvert.setEnabled(true);
               },
-              title -> {
-                viewModel.setSongTitle(title);
-              });
+              title -> viewModel.setSongTitle(title));
         });
 
     return viewConvert;
