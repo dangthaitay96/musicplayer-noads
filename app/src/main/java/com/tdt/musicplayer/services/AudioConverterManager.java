@@ -43,11 +43,9 @@ public class AudioConverterManager {
               AtomicBoolean progressDone = new AtomicBoolean(false);
 
               try {
-                // Khởi tạo NewPipe
                 NewPipe.init(DownloaderImpl.getInstance());
                 StreamInfo streamInfo = StreamInfo.getInfo(NewPipe.getService(0), youtubeUrl);
 
-                // Gọi callback truyền tên bài hát
                 if (onTitleReady != null) {
                   new Handler(Looper.getMainLooper())
                       .post(
@@ -70,11 +68,9 @@ public class AudioConverterManager {
 
                 String songName = sanitizeFileName(streamInfo.getName());
 
-                // 📥 Tải file M4A (DownloadService đã scale từ 0–70)
                 File m4aFile =
                     downloadService.downloadAudio(audioUrl, downloadDir, songName, onProgress);
 
-                // ▶️ Bắt đầu mô phỏng tiến trình convert 71 → 100 (thread riêng)
                 File finalMp3File = mp3File;
                 new Thread(
                         () -> {
@@ -86,7 +82,7 @@ public class AudioConverterManager {
                                       if (onProgress != null) onProgress.accept(finalP);
                                     });
                             try {
-                              Thread.sleep(50); // 50ms mỗi % (khoảng 1.5 giây giả lập)
+                              Thread.sleep(50);
                             } catch (InterruptedException ignored) {
                             }
                           }
@@ -100,11 +96,9 @@ public class AudioConverterManager {
                         })
                     .start();
 
-                // 🔁 Chuyển đổi thật
                 mp3File = convertService.convertToMp3(m4aFile, downloadDir, songName);
                 convertDone.set(true);
 
-                // ❌ Xoá file m4a
                 try {
                   if (!m4aFile.delete()) {
                     Log.w(
