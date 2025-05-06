@@ -27,16 +27,10 @@ public class DownloadService {
 
     if (!response.isSuccessful()) throw new IOException("Download failed");
     assert response.body() != null;
-    long contentLength = response.body().contentLength(); // Tổng dung lượng file
+    long contentLength = response.body().contentLength();
 
     File outputFile = new File(outputDir, songName + System.currentTimeMillis() + ".m4a");
 
-    //    try (InputStream is = response.body().byteStream();
-    //        FileOutputStream fos = new FileOutputStream(outputFile)) {
-    //      byte[] buffer = new byte[4096];
-    //      int len;
-    //      while ((len = is.read(buffer)) != -1) fos.write(buffer, 0, len);
-    //    }
     try (InputStream is = response.body().byteStream();
         FileOutputStream fos = new FileOutputStream(outputFile)) {
 
@@ -52,12 +46,11 @@ public class DownloadService {
         // Gửi tiến trình nếu biết tổng dung lượng
         if (onProgress != null && contentLength > 0) {
           int rawProgress = (int) ((totalRead * 100) / contentLength);
-          int scaledProgress = Math.min(70, (rawProgress * 70) / 100);
+          int scaledProgress = Math.min(80, (rawProgress * 80) / 100);
 
           if (scaledProgress != lastProgress) {
-            int finalProgress = scaledProgress;
-            new Handler(Looper.getMainLooper()).post(() -> onProgress.accept(finalProgress));
-            lastProgress = finalProgress;
+              new Handler(Looper.getMainLooper()).post(() -> onProgress.accept(scaledProgress));
+            lastProgress = scaledProgress;
           }
         }
       }

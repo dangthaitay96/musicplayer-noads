@@ -131,6 +131,7 @@ public class ConvertFragment extends Fragment {
                 progressText.setVisibility(View.VISIBLE);
                 progressText.setText("100%");
                 ViewUtils.showQuickFeedback(textFeedback, "Tải và chuyển đổi thành công");
+//                textFeedback.setText("Tải và chuyển đổi thành công");
                 editLink.setText("");
                 viewModel.setLink("");
                 btnConvert.setEnabled(false);

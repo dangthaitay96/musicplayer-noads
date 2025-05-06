@@ -74,7 +74,7 @@ public class AudioConverterManager {
                 File finalMp3File = mp3File;
                 new Thread(
                         () -> {
-                          for (int p = 71; p <= 100; p++) {
+                          for (int p = 81; p <= 100; p++) {
                             int finalP = p;
                             new Handler(Looper.getMainLooper())
                                 .post(
