@@ -98,6 +98,12 @@ public class AudioConverterManager {
 
                 mp3File = convertService.convertToMp3(m4aFile, downloadDir, songName);
                 convertDone.set(true);
+                  checkAndFinish(
+                          finalMp3File,
+                          onSuccess,
+                          onFail,
+                          convertDone.get(),
+                          progressDone.get());
 
                 try {
                   if (!m4aFile.delete()) {

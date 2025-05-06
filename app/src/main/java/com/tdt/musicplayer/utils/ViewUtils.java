@@ -13,7 +13,7 @@ public class ViewUtils {
         .animate()
         .alpha(0f)
         .setDuration(1000)
-        .setStartDelay(6000)
+        .setStartDelay(2000)
         .withEndAction(() -> textView.setVisibility(View.INVISIBLE))
         .start();
   }
