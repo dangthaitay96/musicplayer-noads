@@ -8,6 +8,7 @@ import android.util.Log;
 import java.io.File;
 import java.text.Normalizer;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.stream.AudioStream;
@@ -28,6 +29,7 @@ public class AudioConverterManager {
   public void startDownloadAndConvert(
       String youtubeUrl,
       Runnable onStart,
+      Consumer<Integer> onProgress,
       Runnable onSuccess,
       Runnable onFail,
       Consumer<String> onTitleReady) {
@@ -37,6 +39,9 @@ public class AudioConverterManager {
     new Thread(
             () -> {
               File mp3File = null;
+              AtomicBoolean convertDone = new AtomicBoolean(false);
+              AtomicBoolean progressDone = new AtomicBoolean(false);
+
               try {
                 // Khởi tạo NewPipe
                 NewPipe.init(DownloaderImpl.getInstance());
@@ -44,9 +49,11 @@ public class AudioConverterManager {
 
                 // Gọi callback truyền tên bài hát
                 if (onTitleReady != null) {
-                  new Handler(Looper.getMainLooper()).post(() -> {
-                    onTitleReady.accept(streamInfo.getName());
-                  });
+                  new Handler(Looper.getMainLooper())
+                      .post(
+                          () -> {
+                            onTitleReady.accept(streamInfo.getName());
+                          });
                 }
 
                 List<AudioStream> audioStreams = streamInfo.getAudioStreams();
@@ -63,13 +70,41 @@ public class AudioConverterManager {
 
                 String songName = sanitizeFileName(streamInfo.getName());
 
-                // 📥 Tải file M4A
-                File m4aFile = downloadService.downloadAudio(audioUrl, downloadDir, songName);
+                // 📥 Tải file M4A (DownloadService đã scale từ 0–70)
+                File m4aFile =
+                    downloadService.downloadAudio(audioUrl, downloadDir, songName, onProgress);
 
-                // 🔄 Chuyển đổi sang MP3
+                // ▶️ Bắt đầu mô phỏng tiến trình convert 71 → 100 (thread riêng)
+                File finalMp3File = mp3File;
+                new Thread(
+                        () -> {
+                          for (int p = 71; p <= 100; p++) {
+                            int finalP = p;
+                            new Handler(Looper.getMainLooper())
+                                .post(
+                                    () -> {
+                                      if (onProgress != null) onProgress.accept(finalP);
+                                    });
+                            try {
+                              Thread.sleep(50); // 50ms mỗi % (khoảng 1.5 giây giả lập)
+                            } catch (InterruptedException ignored) {
+                            }
+                          }
+                          progressDone.set(true);
+                          checkAndFinish(
+                              finalMp3File,
+                              onSuccess,
+                              onFail,
+                              convertDone.get(),
+                              progressDone.get());
+                        })
+                    .start();
+
+                // 🔁 Chuyển đổi thật
                 mp3File = convertService.convertToMp3(m4aFile, downloadDir, songName);
+                convertDone.set(true);
 
-                // ❌ Xoá file tạm .m4a (không để lỗi này ảnh hưởng)
+                // ❌ Xoá file m4a
                 try {
                   if (!m4aFile.delete()) {
                     Log.w(
@@ -80,21 +115,12 @@ public class AudioConverterManager {
                   Log.e("AudioConverterManager", "Lỗi khi xoá file m4a: " + ex.getMessage());
                 }
 
+                checkAndFinish(mp3File, onSuccess, onFail, convertDone.get(), progressDone.get());
+
               } catch (Exception e) {
                 Log.e("AudioConverterManager", "Lỗi khi tải/convert: " + e.getMessage(), e);
+                new Handler(Looper.getMainLooper()).post(onFail);
               }
-
-              // ✅ Kiểm tra kết quả và phản hồi UI
-              File finalMp3File = mp3File; // để dùng trong lambda
-              new Handler(Looper.getMainLooper())
-                  .post(
-                      () -> {
-                        if (finalMp3File != null && finalMp3File.exists()) {
-                          onSuccess.run();
-                        } else {
-                          onFail.run();
-                        }
-                      });
             })
         .start();
   }
@@ -107,5 +133,24 @@ public class AudioConverterManager {
             .replaceAll("đ", "d")
             .replaceAll("Đ", "D");
     return noDiacritics.replaceAll("[\\\\/:*?\"<>|]", "_").replaceAll("[^\\x20-\\x7E]", "_");
+  }
+
+  private void checkAndFinish(
+      File mp3File,
+      Runnable onSuccess,
+      Runnable onFail,
+      boolean convertDone,
+      boolean progressDone) {
+    if (convertDone && progressDone) {
+      new Handler(Looper.getMainLooper())
+          .post(
+              () -> {
+                if (mp3File != null && mp3File.exists()) {
+                  onSuccess.run();
+                } else {
+                  onFail.run();
+                }
+              });
+    }
   }
 }

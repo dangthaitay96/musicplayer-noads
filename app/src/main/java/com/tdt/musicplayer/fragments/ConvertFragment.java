@@ -43,6 +43,7 @@ public class ConvertFragment extends Fragment {
     progressBar = viewConvert.findViewById(R.id.progress_download);
     audioConverterManager = new AudioConverterManager(requireContext());
     TextView textDescription = viewConvert.findViewById(R.id.text_description);
+    TextView progressText = viewConvert.findViewById(R.id.progress_text);
 
     // Quan sát LiveData và cập nhật EditText khi có thay đổi
     viewModel
@@ -107,9 +108,20 @@ public class ConvertFragment extends Fragment {
 
           audioConverterManager.startDownloadAndConvert(
               url,
-              () -> progressBar.setVisibility(View.VISIBLE),
               () -> {
-                progressBar.setVisibility(View.GONE);
+                progressBar.setProgress(0);
+                progressBar.setIndeterminate(false);
+                progressBar.setVisibility(View.VISIBLE);
+                progressText.setVisibility(View.VISIBLE);
+              },
+              progress -> {
+                progressBar.setProgress(progress);
+                progressText.setText(progress + "%");
+              },
+              () -> {
+                progressBar.setVisibility(View.VISIBLE);
+                progressText.setVisibility(View.VISIBLE);
+                progressText.setText("100%");
                 ViewUtils.showQuickFeedback(textFeedback, "Tải và chuyển đổi thành công");
                 editLink.setText("");
                 viewModel.setLink("");
@@ -119,6 +131,7 @@ public class ConvertFragment extends Fragment {
               },
               () -> {
                 progressBar.setVisibility(View.GONE);
+                progressText.setVisibility(View.GONE);
                 ViewUtils.showQuickFeedback(textFeedback, "Đã xảy ra lỗi khi xử lý link");
                 btnConvert.setEnabled(true);
               },
