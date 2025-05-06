@@ -8,6 +8,7 @@ public class ConvertViewModel extends ViewModel {
   private final MutableLiveData<String> linkY = new MutableLiveData<>();
   private final MutableLiveData<Boolean> isConverting = new MutableLiveData<>(false);
   private final MutableLiveData<String> songTitle = new MutableLiveData<>("");
+  private final MutableLiveData<Integer> progress = new MutableLiveData<>(0);
 
   public LiveData<String> getLink() {
     return linkY;
@@ -31,5 +32,13 @@ public class ConvertViewModel extends ViewModel {
 
   public void setSongTitle(String title) {
     songTitle.setValue(title);
+  }
+
+  public LiveData<Integer> getProgress() {
+    return progress;
+  }
+
+  public void setProgress(int value) {
+    progress.setValue(value);
   }
 }

@@ -32,11 +32,7 @@ public class ConvertFragment extends Fragment {
   public View onCreateView(
       LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View viewConvert = inflater.inflate(R.layout.convert_fragment, container, false);
-
-    // Khởi tạo ViewModel
     viewModel = new ViewModelProvider(requireActivity()).get(ConvertViewModel.class);
-
-    // Khởi tạo view và service
     editLink = viewConvert.findViewById(R.id.edit_youtube_link);
     Button btnConvert = viewConvert.findViewById(R.id.btn_convert);
     TextView textFeedback = viewConvert.findViewById(R.id.text_feedback);
@@ -45,7 +41,6 @@ public class ConvertFragment extends Fragment {
     TextView textDescription = viewConvert.findViewById(R.id.text_description);
     TextView progressText = viewConvert.findViewById(R.id.progress_text);
 
-    // Quan sát LiveData và cập nhật EditText khi có thay đổi
     viewModel
         .getLink()
         .observe(
@@ -79,7 +74,20 @@ public class ConvertFragment extends Fragment {
               }
             });
 
-    // Ghi lại thay đổi trong EditText vào ViewModel
+    viewModel
+        .getProgress()
+        .observe(
+            getViewLifecycleOwner(),
+            progress -> {
+              progressBar.setProgress(progress);
+              progressText.setText(progress + "%");
+
+              if (progress > 0) {
+                progressBar.setVisibility(View.VISIBLE);
+                progressText.setVisibility(View.VISIBLE);
+              }
+            });
+
     editLink.addTextChangedListener(
         new TextWatcher() {
           @Override
@@ -95,7 +103,6 @@ public class ConvertFragment extends Fragment {
           public void afterTextChanged(Editable s) {}
         });
 
-    // Xử lý nút Convert
     btnConvert.setOnClickListener(
         v -> {
           String url = editLink.getText().toString().trim();
@@ -117,6 +124,7 @@ public class ConvertFragment extends Fragment {
               progress -> {
                 progressBar.setProgress(progress);
                 progressText.setText(progress + "%");
+                viewModel.setProgress(progress);
               },
               () -> {
                 progressBar.setVisibility(View.VISIBLE);
