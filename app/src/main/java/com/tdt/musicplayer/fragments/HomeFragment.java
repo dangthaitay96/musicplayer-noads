@@ -47,6 +47,8 @@ public class HomeFragment extends Fragment {
   private DiscSwitcher discSwitcher;
   private boolean isSleepTimerRunning = false;
   private SleepTimerViewModel sleepTimerViewModel;
+  private SeekBar seekBar;
+  private boolean isSeekBarInteractive = false;
 
   @Nullable
   @Override
@@ -121,7 +123,7 @@ public class HomeFragment extends Fragment {
     return view;
   }
 
-  @SuppressLint("DefaultLocale")
+  @SuppressLint({"DefaultLocale", "SetTextI18n", "ClickableViewAccessibility"})
   private void setupUI(View view) {
     ImageButton btnPrev = view.findViewById(R.id.btn_prev);
     ImageButton btnNext = view.findViewById(R.id.btn_next);
@@ -131,7 +133,7 @@ public class HomeFragment extends Fragment {
     drawerLayout = view.findViewById(R.id.drawer_layout);
     songListView = view.findViewById(R.id.song_list_view);
     btnPlayPause = view.findViewById(R.id.btn_play_pause);
-    SeekBar seekBar = view.findViewById(R.id.seek_bar);
+    seekBar = view.findViewById(R.id.seek_bar);
     TextView tvCurrentTime = view.findViewById(R.id.tv_current_time);
     TextView tvTotalTime = view.findViewById(R.id.tv_total_time);
     songTitle = view.findViewById(R.id.song_title);
@@ -145,6 +147,7 @@ public class HomeFragment extends Fragment {
     btnNext.setEnabled(false);
     btnForward.setEnabled(false);
     btnBackward.setEnabled(false);
+    seekBar.setOnTouchListener((v, event) -> !isSeekBarInteractive);
 
     musicPlayerManager =
         MusicPlayerManager.getInstance(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
@@ -242,6 +245,25 @@ public class HomeFragment extends Fragment {
         v -> {
           songList.clear();
           songListAdapter.clear();
+          homeViewModel.setSongList(new ArrayList<>());
+          musicPlayerManager.setSongList(new ArrayList<>());
+
+          musicPlayerManager.pause(); // <- Dừng nhạc
+          playerViewModel.setCurrentSong(null); // <- Xóa bài đang phát
+          playerViewModel.setDiscSpinning(false); // <- Dừng quay đĩa nếu đang quay
+          playerViewModel.setCurrentIndex(-1); // <- Reset index
+
+          // 3. Reset giao diện
+          songTitle.setText("Đang phát: "); // hoặc "Không có bài hát"
+          songTitle.setSelected(false);
+          btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
+          btnPlayPause.setEnabled(false);
+
+          tvCurrentTime.setText("00:00");
+          tvTotalTime.setText("00:00");
+          seekBar.setProgress(0);
+          setSeekBarInteractive(false);
+
           Toast.makeText(getContext(), "🗑️ Đã xoá danh sách nhạc", Toast.LENGTH_SHORT).show();
         });
 
@@ -254,7 +276,9 @@ public class HomeFragment extends Fragment {
               playerViewModel.setCurrentSong(musicPlayerManager.getCurrentSong());
               playerViewModel.setCurrentIndex(musicPlayerManager.getCurrentIndex());
               playerViewModel.setDiscSpinning(true);
+              btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
               songListAdapter.notifyDataSetChanged();
+              setSeekBarInteractive(true);
             });
     view.findViewById(R.id.btn_prev)
         .setOnClickListener(
@@ -263,7 +287,9 @@ public class HomeFragment extends Fragment {
               playerViewModel.setCurrentSong(musicPlayerManager.getCurrentSong());
               playerViewModel.setCurrentIndex(musicPlayerManager.getCurrentIndex());
               playerViewModel.setDiscSpinning(true);
+              btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
               songListAdapter.notifyDataSetChanged();
+              setSeekBarInteractive(true);
             });
 
     musicPlayerManager.setOnSongChangeListener(
@@ -280,6 +306,8 @@ public class HomeFragment extends Fragment {
     songListView.setOnItemClickListener(
         (parent, view1, position, id) -> {
           int realPosition = position - songListView.getHeaderViewsCount();
+          setSeekBarInteractive(true);
+
           if (realPosition >= 0 && realPosition < songListAdapter.getCount()) {
             Song selectedSong = songListAdapter.getItem(realPosition);
             if (selectedSong != null) {
@@ -306,9 +334,14 @@ public class HomeFragment extends Fragment {
             playerViewModel.setDiscSpinning(false);
             btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
           } else {
-            musicPlayerManager.resume();
-            playerViewModel.setDiscSpinning(true);
-            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+            Song currentSong = playerViewModel.getCurrentSong().getValue();
+            if (currentSong != null) {
+              musicPlayerManager.resume();
+              playerViewModel.setDiscSpinning(true);
+              btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+            } else {
+              Toast.makeText(getContext(), "⚠️ Chưa chọn bài hát!", Toast.LENGTH_SHORT).show();
+            }
           }
         });
 
@@ -381,6 +414,7 @@ public class HomeFragment extends Fragment {
   private void loadSongs() {
     songList = songRepository.loadLocalSongs(requireContext());
     if (songList.isEmpty()) {
+      setSeekBarInteractive(false);
       Toast.makeText(
               getContext(), "⚠️ Không tìm thấy bài hát nào trong thiết bị!", Toast.LENGTH_SHORT)
           .show();
@@ -460,6 +494,11 @@ public class HomeFragment extends Fragment {
                 .setBackgroundDrawable(
                     ContextCompat.getDrawable(requireContext(), R.drawable.bg_dialog_input)));
     dialog.show();
+  }
+
+  @SuppressLint("ClickableViewAccessibility")
+  private void setSeekBarInteractive(boolean enabled) {
+    isSeekBarInteractive = enabled;
   }
 
   @Override
