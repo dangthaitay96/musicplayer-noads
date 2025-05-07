@@ -265,4 +265,15 @@ public class MusicPlayerManager {
       currentIndex = 0;
     }
   }
+
+  public void resetPlayback() {
+    pause(); // Dừng nhạc nếu đang chạy
+    if (mediaPlayer != null) {
+      mediaPlayer.reset(); // Xóa trạng thái nhạc hiện tại
+    }
+    currentSong = null;
+    currentIndex = -1;
+    songList = null;
+  }
+
 }
