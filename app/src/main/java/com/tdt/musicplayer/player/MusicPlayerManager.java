@@ -1,6 +1,6 @@
 package com.tdt.musicplayer.player;
 
-import android.content.Context;
+import android.annotation.SuppressLint;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.util.Log;
@@ -15,49 +15,33 @@ import java.util.Locale;
 import java.util.Random;
 
 public class MusicPlayerManager {
+  @SuppressLint("StaticFieldLeak")
   private static MusicPlayerManager instance;
 
   private OnSongChangeListener songChangeListener;
-
-  public void setOnSongChangeListener(OnSongChangeListener listener) {
-    this.songChangeListener = listener;
-  }
-
-  private void notifySongChanged(Song song) {
-    if (songChangeListener != null) {
-      songChangeListener.onSongChanged(song);
-    }
-  }
+  private SeekBar seekBar;
+  private TextView tvCurrentTime;
+  private TextView tvTotalTime;
+  private final Handler timeHandler = new Handler();
+  private MediaPlayer mediaPlayer;
+  private Runnable timeRunnable;
+  private List<Song> songList;
+  private int currentIndex = 0;
+  private Song currentSong = null;
+  private PlaybackMode playbackMode = PlaybackMode.NORMAL;
+  private boolean isPrepared = false;
 
   public static MusicPlayerManager getInstance(
-      Context context, SeekBar seekBar, TextView tvCurrentTime, TextView tvTotalTime) {
+      SeekBar seekBar, TextView tvCurrentTime, TextView tvTotalTime) {
     if (instance == null) {
-      instance =
-          new MusicPlayerManager(
-              context.getApplicationContext(), seekBar, tvCurrentTime, tvTotalTime);
+      instance = new MusicPlayerManager(seekBar, tvCurrentTime, tvTotalTime);
     } else {
       instance.updateUI(seekBar, tvCurrentTime, tvTotalTime);
     }
     return instance;
   }
 
-  private final Context context;
-  private SeekBar seekBar;
-  private TextView tvCurrentTime;
-  private TextView tvTotalTime;
-  private final Handler timeHandler = new Handler();
-
-  private MediaPlayer mediaPlayer;
-  private Runnable timeRunnable;
-
-  private List<Song> songList;
-  private int currentIndex = 0;
-  private Song currentSong = null;
-  private PlaybackMode playbackMode = PlaybackMode.NORMAL;
-
-  private MusicPlayerManager(
-      Context context, SeekBar seekBar, TextView tvCurrentTime, TextView tvTotalTime) {
-    this.context = context;
+  private MusicPlayerManager(SeekBar seekBar, TextView tvCurrentTime, TextView tvTotalTime) {
     this.seekBar = seekBar;
     this.tvCurrentTime = tvCurrentTime;
     this.tvTotalTime = tvTotalTime;
@@ -129,10 +113,22 @@ public class MusicPlayerManager {
     }
   }
 
+  //  public void resume() {
+  //    if (mediaPlayer != null && !mediaPlayer.isPlaying()) {
+  //      mediaPlayer.start();
+  //      timeHandler.post(timeRunnable);
+  //    }
+  //  }
   public void resume() {
-    if (mediaPlayer != null && !mediaPlayer.isPlaying()) {
-      mediaPlayer.start();
-      timeHandler.post(timeRunnable);
+    if (mediaPlayer != null) {
+      if (!isPrepared) {
+        // Nếu chưa prepare thì phải gọi lại playSong
+        isPrepared = true;
+        playSong(currentSong);
+      } else if (!mediaPlayer.isPlaying()) {
+        mediaPlayer.start();
+        timeHandler.post(timeRunnable);
+      }
     }
   }
 
@@ -141,10 +137,11 @@ public class MusicPlayerManager {
   }
 
   private void playSong(Song song) {
+    isPrepared = true;
     try {
       if (mediaPlayer != null) {
         try {
-          mediaPlayer.reset(); // An toàn hơn stop
+          mediaPlayer.reset();
         } catch (IllegalStateException e) {
           Log.w("MusicPlayerManager", "Reset failed, re-creating MediaPlayer", e);
           mediaPlayer.release();
@@ -258,7 +255,6 @@ public class MusicPlayerManager {
 
   public void setSongList(List<Song> newList) {
     this.songList = newList;
-    // Nếu đang phát bài nào thì cập nhật currentIndex cho khớp
     if (currentSong != null) {
       currentIndex = songList.indexOf(currentSong);
     } else {
@@ -267,13 +263,42 @@ public class MusicPlayerManager {
   }
 
   public void resetPlayback() {
-    pause(); // Dừng nhạc nếu đang chạy
+    isPrepared = false;
+    pause();
     if (mediaPlayer != null) {
-      mediaPlayer.reset(); // Xóa trạng thái nhạc hiện tại
+      mediaPlayer.reset();
     }
     currentSong = null;
     currentIndex = -1;
     songList = null;
   }
 
+  public void setCurrentIndex(int index) {
+    this.currentIndex = index;
+  }
+
+  public void seekTo(int positionInMillis) {
+    if (mediaPlayer != null) {
+      mediaPlayer.seekTo(positionInMillis);
+    }
+  }
+
+  public boolean isPrepared() {
+    return isPrepared;
+  }
+
+  public void setCurrentSong(Song song) {
+    this.currentSong = song;
+    notifySongChanged(song);
+  }
+
+  public void setOnSongChangeListener(OnSongChangeListener listener) {
+    this.songChangeListener = listener;
+  }
+
+  private void notifySongChanged(Song song) {
+    if (songChangeListener != null) {
+      songChangeListener.onSongChanged(song);
+    }
+  }
 }

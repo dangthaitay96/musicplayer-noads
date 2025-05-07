@@ -47,6 +47,7 @@ dependencies {
 
     // Thay thế dependency
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2.LTS")
+    implementation("com.google.code.gson:gson:2.10.1")
 
 
 

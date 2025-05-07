@@ -28,6 +28,7 @@ import com.tdt.musicplayer.player.MusicPlayerManager;
 import com.tdt.musicplayer.repository.SongRepository;
 import com.tdt.musicplayer.utils.DiscImageProvider;
 import com.tdt.musicplayer.utils.DiscSwitcher;
+import com.tdt.musicplayer.utils.PlaybackStateStorage;
 import com.tdt.musicplayer.utils.ViewUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,33 @@ public class HomeFragment extends Fragment {
     setupUI(view);
     setupButtonListeners(view);
     setupPlaybackModeButton(view);
+
+    // 🔁 PHỤC HỒI TRẠNG THÁI LƯU TRƯỚC ĐÓ
+    List<Song> restoredList = PlaybackStateStorage.getSavedSongList(requireContext());
+    int savedIndex = PlaybackStateStorage.getSavedCurrentIndex(requireContext());
+
+    if (!restoredList.isEmpty()) {
+      songList = restoredList;
+      homeViewModel.setSongList(songList);
+      musicPlayerManager.setSongList(songList);
+
+      if (savedIndex >= 0 && savedIndex < songList.size()) {
+        Song song = songList.get(savedIndex);
+        musicPlayerManager.setCurrentIndex(savedIndex);
+        musicPlayerManager.setCurrentSong(song);
+        musicPlayerManager.seekTo(0);
+        playerViewModel.setCurrentSong(song);
+        playerViewModel.setCurrentIndex(savedIndex);
+        playerViewModel.setDiscSpinning(false);
+        setSeekBarInteractive(true);
+        btnPlayPause.setEnabled(true);
+        btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
+
+        songListAdapter.notifyDataSetChanged();
+        int scrollIndex = savedIndex + songListView.getHeaderViewsCount();
+        songListView.smoothScrollToPosition(scrollIndex);
+      }
+    }
 
     homeViewModel
         .getSongList()
@@ -151,8 +179,7 @@ public class HomeFragment extends Fragment {
     btnBackward.setEnabled(false);
     seekBar.setOnTouchListener((v, event) -> !isSeekBarInteractive);
 
-    musicPlayerManager =
-        MusicPlayerManager.getInstance(requireContext(), seekBar, tvCurrentTime, tvTotalTime);
+    musicPlayerManager = MusicPlayerManager.getInstance(seekBar, tvCurrentTime, tvTotalTime);
     musicPlayerManager.syncUI();
     btnPlayPause.setImageResource(
         musicPlayerManager.isPlaying()
@@ -277,6 +304,8 @@ public class HomeFragment extends Fragment {
               btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
               songListAdapter.notifyDataSetChanged();
               setSeekBarInteractive(true);
+              PlaybackStateStorage.saveState(
+                  requireContext(), songList, musicPlayerManager.getCurrentIndex());
             });
     view.findViewById(R.id.btn_prev)
         .setOnClickListener(
@@ -288,6 +317,8 @@ public class HomeFragment extends Fragment {
               btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
               songListAdapter.notifyDataSetChanged();
               setSeekBarInteractive(true);
+              PlaybackStateStorage.saveState(
+                  requireContext(), songList, musicPlayerManager.getCurrentIndex());
             });
 
     musicPlayerManager.setOnSongChangeListener(
@@ -317,6 +348,7 @@ public class HomeFragment extends Fragment {
               btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
               songListAdapter.notifyDataSetChanged();
               drawerLayout.closeDrawer(GravityCompat.START);
+              PlaybackStateStorage.saveState(requireContext(), songList, realPosition);
             }
           }
         });
@@ -325,6 +357,7 @@ public class HomeFragment extends Fragment {
   private void setupButtonListeners(View view) {
     ImageButton btnTimer = view.findViewById(R.id.btn_timer);
     btnTimer.setOnClickListener(v -> showCustomTimerDialog());
+
     btnPlayPause.setOnClickListener(
         v -> {
           if (musicPlayerManager.isPlaying()) {
@@ -334,7 +367,13 @@ public class HomeFragment extends Fragment {
           } else {
             Song currentSong = playerViewModel.getCurrentSong().getValue();
             if (currentSong != null) {
-              musicPlayerManager.resume();
+              if (musicPlayerManager.isPrepared()) {
+                musicPlayerManager.resume();
+              } else {
+                musicPlayerManager.play(
+                    Objects.requireNonNull(homeViewModel.getSongList().getValue()),
+                    musicPlayerManager.getCurrentIndex());
+              }
               playerViewModel.setDiscSpinning(true);
               btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
             } else {
