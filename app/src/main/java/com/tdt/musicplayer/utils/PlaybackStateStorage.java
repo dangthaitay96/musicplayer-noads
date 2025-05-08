@@ -43,8 +43,9 @@ public class PlaybackStateStorage {
         return prefs.getInt(KEY_CURRENT_INDEX, -1);
     }
 
-    public static void clear(Context context) {
+    public static void clearState(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         prefs.edit().clear().apply();
     }
+
 }

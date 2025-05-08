@@ -288,7 +288,7 @@ public class HomeFragment extends Fragment {
           tvTotalTime.setText("00:00");
           seekBar.setProgress(0);
           setSeekBarInteractive(false);
-
+          PlaybackStateStorage.clearState(requireContext());
           Toast.makeText(getContext(), "🗑️ Đã xoá danh sách nhạc", Toast.LENGTH_SHORT).show();
         });
 

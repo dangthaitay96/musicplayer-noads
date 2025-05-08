@@ -19,7 +19,7 @@
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:backgroundTint="#1E90FF"
-            android:text="📡 Quét toàn bộ"
+            android:text="Quét mp3"
             android:textColor="#FFFFFF" />
 
         <Button
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:backgroundTint="#FF6347"
-            android:text="🗑️ Xoá danh sách"
+            android:text="Xoá mp3"
             android:textColor="#FFFFFF" />
     </LinearLayout>
 
